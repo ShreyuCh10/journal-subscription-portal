@@ -3,9 +3,13 @@ import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
-import Dashboard from './pages/Dashboard/Dashboard';
 import VerifyEmail from './pages/VerifyEmail/VerifyEmail';
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import AdminDashboard from './Pages/Dashboard/AdminDashboard/Dashboard';
+import UserDashboard from './Pages/Dashboard/UserDashboard/Dashboard';
+
+
+
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -15,7 +19,7 @@ const router = createBrowserRouter([
     element: (
       <>
         <SignedIn>
-          <Dashboard />
+          <AdminDashboard />
         </SignedIn>
         <SignedOut>
           <Login />
@@ -40,13 +44,23 @@ const router = createBrowserRouter([
   element: <ResetPassword />,
   },
   {
-    path: '/dashboard',
+    path: '/Admindashboard',
     element: (
       <SignedIn>
-        <Dashboard />
+        <AdminDashboard />
       </SignedIn>
     ),
   },
+
+  {
+    path: '/userdashboard',
+    element: (
+      <SignedIn>
+        <UserDashboard />
+      </SignedIn>
+    ),
+  },
+
 ]);
 
 function App() {
