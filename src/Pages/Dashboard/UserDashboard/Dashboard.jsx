@@ -33,7 +33,7 @@ const Dashboard = () => {
         <header className="header">
           <h1>User Dashboard</h1>
           <div className="header-right">
-            <img src="https://i.pravatar.cc/40" alt="User" />
+            <img src=" " alt="User" />
             <span>Welcome, User</span>
             <button className="logout-btn">Logout</button>
           </div>
