@@ -1,4 +1,3 @@
-// src/assets/Pages/Dashboard/UserDashboard/Dashboard/Dashboard.jsx
 import React from "react";
 import { Outlet } from "react-router-dom";
 import UserSidebar from "./UserSidebar";

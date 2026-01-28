@@ -19,7 +19,7 @@ const UserSidebar = () => {
           <img
             src="/image.svg"
             alt="Journal Hub Logo"
-            className="h-8 w-8 object-cover"
+            className="h-16 w-16 object-cover"
           />
         </div>
         <h3
