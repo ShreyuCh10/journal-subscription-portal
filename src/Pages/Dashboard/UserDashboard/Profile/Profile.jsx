@@ -1,9 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { FaUserEdit, FaEnvelope, FaFingerprint, FaShieldAlt, FaMapMarkedAlt, FaBell, FaCamera } from "react-icons/fa";
 
 const Profile = () => {
-  // State for the communication toggle (Functional Requirement 1)
+  // State for the communication toggle
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
+  
+  // State for the profile image - Defaulting to a professional placeholder
+  const [profileImg, setProfileImg] = useState("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400");
+  
+  // Reference to the hidden file input
+  const fileInputRef = useRef(null);
+
+  // Function to handle image selection
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImg(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Function to trigger the file input click
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -21,14 +44,32 @@ const Profile = () => {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm text-center relative overflow-hidden">
             <div className="relative inline-block group">
-              <div className="w-32 h-32 bg-indigo-50 rounded-full mx-auto flex items-center justify-center text-indigo-200 text-6xl border-4 border-white shadow-inner overflow-hidden">
-                {/* Placeholder for User Profile Image */}
-                <FaFingerprint />
+              {/* Profile Image Container */}
+              <div className="w-32 h-32 bg-indigo-50 rounded-full mx-auto flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
+                {profileImg ? (
+                  <img src={profileImg} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <FaFingerprint className="text-indigo-200 text-6xl" />
+                )}
               </div>
-              {/* Add Profile Photo Button */}
-              <button className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2.5 rounded-full border-4 border-white hover:bg-slate-900 transition-all shadow-lg cursor-pointer">
+
+              {/* Functional Camera Button */}
+              <button 
+                onClick={triggerFileInput}
+                className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2.5 rounded-full border-4 border-white hover:bg-slate-900 transition-all shadow-lg cursor-pointer transform active:scale-90"
+                title="Change Profile Picture"
+              >
                 <FaCamera className="text-sm" />
               </button>
+
+              {/* Hidden File Input */}
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImageChange} 
+                className="hidden" 
+                accept="image/*"
+              />
             </div>
             
             <h2 className="mt-5 text-2xl font-black text-slate-900 tracking-tight">Asmi Gupta</h2>
@@ -98,7 +139,7 @@ const Profile = () => {
             </button>
           </div>
 
-          {/* Notification Preferences (Req 1) */}
+          {/* Communication Settings */}
           <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">
               <FaBell className="text-indigo-600" /> Communication Settings
@@ -114,7 +155,6 @@ const Profile = () => {
                   <p className="text-xs text-slate-500 font-medium italic">Automatically receive email invitations for non-subscribed journals.</p>
                 </div>
                 
-                {/* Functional Toggle Switch */}
                 <div className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${isNotifEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}>
                   <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${isNotifEnabled ? 'right-1' : 'left-1'}`}></div>
                 </div>
@@ -122,7 +162,6 @@ const Profile = () => {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
