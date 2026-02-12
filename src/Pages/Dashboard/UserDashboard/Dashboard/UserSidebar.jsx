@@ -32,10 +32,12 @@ const UserSidebar = () => {
 
       {/* Sidebar Links */}
       <div className="px-4 space-y-2 mt-4">
+        {/* DASHBOARD LINK - Added 'end' prop here */}
         <NavLink
           to="/userdashboard"
+          end
           className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700`
+            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
         >
           <FaTachometerAlt />
@@ -45,7 +47,7 @@ const UserSidebar = () => {
         <NavLink
           to="/userdashboard/browse"
           className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700`
+            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
         >
           <FaBookOpen />
@@ -55,7 +57,7 @@ const UserSidebar = () => {
         <NavLink
           to="/userdashboard/subscriptions"
           className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700`
+            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
         >
           <FaBookOpen />
@@ -65,7 +67,7 @@ const UserSidebar = () => {
         <NavLink
           to="/userdashboard/payments"
           className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700`
+            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
         >
           <FaCreditCard />
@@ -75,7 +77,7 @@ const UserSidebar = () => {
         <NavLink
           to="/userdashboard/profile"
           className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700`
+            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
         >
           <FaUser />
@@ -85,7 +87,7 @@ const UserSidebar = () => {
         <NavLink
           to="/userdashboard/settings"
           className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700`
+            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
         >
           <FaCog />
@@ -95,7 +97,7 @@ const UserSidebar = () => {
         <NavLink
           to="/userdashboard/support"
           className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700`
+            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
         >
           <FaLifeRing />

@@ -5,26 +5,24 @@ import Navbar from "./Navbar";
 
 const UserDashboard = () => {
   return (
-    <div className="flex">
+    <div className="flex bg-gray-100 min-h-screen">
+      
       {/* Sidebar */}
       <UserSidebar />
 
-      {/* Main content area */}
+      {/* Main Section */}
       <div className="flex-1 ml-64">
+        
         {/* Navbar */}
-        <Navbar />
+        <div className="fixed top-0 left-64 right-0 z-10">
+          <Navbar />
+        </div>
 
-        {/* Page content */}
-        <div className="p-6">
-          <h1 className="text-3xl font-bold mb-4">Welcome User!</h1>
-          <p className="mb-6">This is your dashboard.</p>
-
-          {/* Optional summary cards */}
-          {/* <UserSummary /> */}
-
-          {/* Nested routes */}
+        {/* Dynamic Page Content */}
+        <div className="pt-20 px-8 pb-10">
           <Outlet />
         </div>
+
       </div>
     </div>
   );

@@ -11,12 +11,13 @@ import AdminDashboard from './Pages/Dashboard/AdminDashboard/Dashboard';
 
 //User Dashboard 
 import UserDashboard from "./Pages/Dashboard/UserDashboard/Dashboard/Dashboard";
-// import BrowseJournals from "./Pages/Dashboard/UserDashboard/BrowseJournals/BrowseJournals";
-// import Subscriptions from "./Pages/Dashboard/UserDashboard/Subscriptions/Subscriptions";
-// import Payments from "./Pages/Dashboard/UserDashboard/Payments/Payments";
-// import Profile from "./Pages/Dashboard/UserDashboard/Profile/Profile";
-// import Settings from "./Pages/Dashboard/UserDashboard/Settings/Settings";
-// import Support from "./Pages/Dashboard/UserDashboard/Support/Support";
+import UserSummary from "./Pages/Dashboard/UserDashboard/Dashboard/UserSummary";
+import BrowseJournals from "./Pages/Dashboard/UserDashboard/BrowseJournals/BrowseJournals";
+import Subscriptions from "./Pages/Dashboard/UserDashboard/Subscriptions/Subscriptions";
+import Payments from "./Pages/Dashboard/UserDashboard/Payments/Payments";
+import Profile from "./Pages/Dashboard/UserDashboard/Profile/Profile";
+import Settings from "./Pages/Dashboard/UserDashboard/Settings/Settings";
+import Support from "./Pages/Dashboard/UserDashboard/Support/Support";
 
 
 
@@ -64,7 +65,7 @@ const router = createBrowserRouter([
     ),
   },
 
-  //User Dashboard Paths
+  // User Dashboard Paths - CORRECTED NESTED STRUCTURE
   {
     path: '/userdashboard',
     element: (
@@ -72,17 +73,37 @@ const router = createBrowserRouter([
         <UserDashboard />
       </SignedIn>
     ),
-  //   children: [
-  //   // { path: '', element: <DashboardHome /> }, // optional home component
-  //   { path: 'browse', element: <BrowseJournals /> },
-  //   { path: 'subscriptions', element: <Subscriptions /> },
-  //   { path: 'payments', element: <Payments /> },
-  //   { path: 'profile', element: <Profile /> },
-  //   { path: 'settings', element: <Settings /> },
-  //   { path: 'support', element: <Support /> },
-  // ],
-   },
-
+    children: [
+      { 
+        index: true, 
+        element: <UserSummary /> 
+      }, // This loads when URL is /userdashboard
+      { 
+        path: 'browse', 
+        element: <BrowseJournals /> 
+      }, // This loads when URL is /userdashboard/browse
+      { 
+        path: 'subscriptions', 
+        element: <Subscriptions /> 
+      },
+      { 
+        path: 'payments', 
+        element: <Payments /> 
+      },
+      { 
+        path: 'profile', 
+        element: <Profile /> 
+      },
+      { 
+        path: 'settings', 
+        element: <Settings /> 
+      },
+      { 
+        path: 'support', 
+        element: <Support /> 
+      },
+    ],
+  },
 ]);
 
 function App() {
