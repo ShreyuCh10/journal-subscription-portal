@@ -1,15 +1,28 @@
-import { useSignIn } from "@clerk/clerk-react";
-import { useState } from "react";
+import { useSignIn, useUser } from "@clerk/clerk-react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 
 const Login = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      const role = user.publicMetadata?.role;
+
+      if (role === "admin") {
+        navigate("/admin-dashboard", { replace: true });
+      } else {
+        navigate("/user-dashboard", { replace: true });
+      }
+    }
+  }, [isSignedIn, user, navigate]);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -24,7 +37,6 @@ const Login = () => {
       });
 
       await setActive({ session: result.createdSessionId });
-      navigate("/", {replace:true});
     } catch (err) {
       alert(err.errors?.[0]?.message || "Sign in failed");
     } finally {

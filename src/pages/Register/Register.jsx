@@ -40,6 +40,9 @@ const Register = () => {
         firstName: name.split(" ")[0] || "",
         lastName: name.split(" ").slice(1).join(" ") || "",
         username: name.split(" ")[0] + Math.floor(Math.random() * 1000), // required by Clerk
+        publicMetadata: {
+          role: "user"
+        }
       });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       navigate("/verify-email", { state: { name } });

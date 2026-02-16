@@ -21,6 +21,24 @@ const VerifyEmail = () => {
     try {
       const res = await signUp.attemptEmailAddressVerification({ code });
       await setActive({ session: res.createdSessionId });
+
+      if(user){
+        console.log({
+        clerkUserId: user.id,
+        email: user.emailAddresses[0].emailAddress,
+        name: `${user.firstName} ${user.lastName}`,
+        });
+        
+        await fetch("http://localhost:8080/api/users/register",{
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({
+            clerkUSerId: user.id,
+            email: user.emailAddresses[0].emailAdress,
+            name: '${user.firstName} ${user.lastName}',
+          }),
+        });
+      }
       navigate("/dashboard", {replace:true});
     } catch (err) {
       setError(err.errors?.[0]?.message || "Invalid verification code");
