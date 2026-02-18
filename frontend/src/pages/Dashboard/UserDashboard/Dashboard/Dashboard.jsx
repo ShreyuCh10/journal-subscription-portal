@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import UserSidebar from "./UserSidebar";
-import Navbar from "./Navbar";
+import Navbar from "../../../../Component/Navbar";
 
 const UserDashboard = () => {
   return (

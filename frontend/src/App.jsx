@@ -1,42 +1,33 @@
 import './App.css';
-import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import VerifyEmail from './pages/VerifyEmail/VerifyEmail';
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 
-//Admin Dashboard 
-import AdminDashboard from './Pages/Dashboard/AdminDashboard/Dashboard';
 
-//User Dashboard 
-import UserDashboard from "./Pages/Dashboard/UserDashboard/Dashboard/Dashboard";
-import UserSummary from "./Pages/Dashboard/UserDashboard/Dashboard/UserSummary";
-import BrowseJournals from "./Pages/Dashboard/UserDashboard/BrowseJournals/BrowseJournals";
-import Subscriptions from "./Pages/Dashboard/UserDashboard/Subscriptions/Subscriptions";
-import Payments from "./Pages/Dashboard/UserDashboard/Payments/Payments";
-import Profile from "./Pages/Dashboard/UserDashboard/Profile/Profile";
-import Settings from "./Pages/Dashboard/UserDashboard/Settings/Settings";
-import Support from "./Pages/Dashboard/UserDashboard/Support/Support";
+import AdminDashboard from './pages/Dashboard/AdminDashboard/AdminDashboard';
+import ManageUsers from "./pages/Dashboard/AdminDashboard/ManageUsers";
+import ManageJournals from "./pages/Dashboard/AdminDashboard/ManageJournals";
+import ManageSubscription from "./pages/Dashboard/AdminDashboard/ManageSubscription";
 
+import UserDashboard from "./pages/Dashboard/UserDashboard/Dashboard/Dashboard";
+import UserSummary from "./pages/Dashboard/UserDashboard/Dashboard/UserSummary";
+import BrowseJournals from "./pages/Dashboard/UserDashboard/BrowseJournals/BrowseJournals";
+import Subscriptions from "./pages/Dashboard/UserDashboard/Subscriptions/Subscriptions";
+import Payments from "./pages/Dashboard/UserDashboard/Payments/Payments";
+import Profile from "./pages/Dashboard/UserDashboard/Profile/Profile";
+import Settings from "./pages/Dashboard/UserDashboard/Settings/Settings";
+import Support from "./pages/Dashboard/UserDashboard/Support/Support";
 
-
-
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+import ProtectedAdminRoute from "./Component/ProtectedAdminRoute";
+import ProtectedUserRoute from "./Component/ProtectedUserRoute";
+import RoleRedirect from "./Component/RoleRedirect";
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: (
-      <>
-        <SignedIn>
-          <AdminDashboard />
-        </SignedIn>
-        <SignedOut>
-          <Login />
-        </SignedOut>
-      </>
-    ),
+    element: <RoleRedirect />,
   },
   {
     path: '/login',
@@ -44,72 +35,51 @@ const router = createBrowserRouter([
   },
   {
     path: '/register',
-    element: <Register/>
+    element: <Register />,
   },
   {
     path: '/verify-email',
     element: <VerifyEmail />,
   },
   {
-  path: "/reset-password",
-  element: <ResetPassword />,
+    path: '/reset-password',
+    element: <ResetPassword />,
   },
 
-  //Admin Dashboard Paths
   {
-    path: '/Admindashboard',
+    path: '/admin-dashboard',
     element: (
-      <SignedIn>
+      <ProtectedAdminRoute>
         <AdminDashboard />
-      </SignedIn>
+      </ProtectedAdminRoute>
     ),
-  },
+      children: [
+    { path: 'users', element: <ManageUsers /> },
+    { path: 'journals', element: <ManageJournals /> },
+    { path: 'subscriptions', element: <ManageSubscription /> },
+  ],
+},
 
-  // User Dashboard Paths - CORRECTED NESTED STRUCTURE
   {
     path: '/userdashboard',
     element: (
-      <SignedIn>
+      <ProtectedUserRoute>
         <UserDashboard />
-      </SignedIn>
+      </ProtectedUserRoute>
     ),
     children: [
-      { 
-        index: true, 
-        element: <UserSummary /> 
-      }, // This loads when URL is /userdashboard
-      { 
-        path: 'browse', 
-        element: <BrowseJournals /> 
-      }, // This loads when URL is /userdashboard/browse
-      { 
-        path: 'subscriptions', 
-        element: <Subscriptions /> 
-      },
-      { 
-        path: 'payments', 
-        element: <Payments /> 
-      },
-      { 
-        path: 'profile', 
-        element: <Profile /> 
-      },
-      { 
-        path: 'settings', 
-        element: <Settings /> 
-      },
-      { 
-        path: 'support', 
-        element: <Support /> 
-      },
+      { index: true, element: <UserSummary /> },
+      { path: 'browse', element: <BrowseJournals /> },
+      { path: 'subscriptions', element: <Subscriptions /> },
+      { path: 'payments', element: <Payments /> },
+      { path: 'profile', element: <Profile /> },
+      { path: 'settings', element: <Settings /> },
+      { path: 'support', element: <Support /> },
     ],
   },
 ]);
-
 function App() {
-  return (
-      <RouterProvider router={router} />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;
