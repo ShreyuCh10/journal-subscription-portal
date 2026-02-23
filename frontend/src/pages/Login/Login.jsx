@@ -2,6 +2,7 @@ import { useSignIn, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
+import { getCurrentUser } from "../../Service/UserApi"; // adjust path if needed
 
 const Login = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -12,17 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isSignedIn && user) {
-      const role = user.publicMetadata?.role;
 
-      if (role === "admin") {
-        navigate("/admin-dashboard", { replace: true });
-      } else {
-        navigate("/user-dashboard", { replace: true });
-      }
-    }
-  }, [isSignedIn, user, navigate]);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -37,6 +28,17 @@ const Login = () => {
       });
 
       await setActive({ session: result.createdSessionId });
+
+      // 🔥 Call your backend to get current user
+      const { data } = await getCurrentUser();
+
+      console.log("Backend user:", data);
+
+      // You can store this in localStorage / context if you want
+      localStorage.setItem("user", JSON.stringify(data));
+
+      // Redirect after login
+      navigate("/"); // change to your route z
     } catch (err) {
       alert(err.errors?.[0]?.message || "Sign in failed");
     } finally {

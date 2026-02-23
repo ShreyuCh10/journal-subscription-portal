@@ -1,4 +1,6 @@
 import './App.css';
+import { useAuth } from "@clerk/clerk-react";
+import { setupInterceptors } from "./Service/api";
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
@@ -23,6 +25,7 @@ import Support from "./pages/Dashboard/UserDashboard/Support/Support";
 import ProtectedAdminRoute from "./Component/ProtectedAdminRoute";
 import ProtectedUserRoute from "./Component/ProtectedUserRoute";
 import RoleRedirect from "./Component/RoleRedirect";
+
 
 const router = createBrowserRouter([
   {
@@ -79,6 +82,9 @@ const router = createBrowserRouter([
   },
 ]);
 function App() {
+     const { getToken } = useAuth();
+
+      setupInterceptors(getToken);
   return <RouterProvider router={router} />;
 }
 

@@ -6,7 +6,7 @@ const ManageUsers = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/admin/users")
+    fetch("http://localhost:8080/api/admin/users")
       .then((res) => res.json())
       .then((data) => {
         setUsers(data);

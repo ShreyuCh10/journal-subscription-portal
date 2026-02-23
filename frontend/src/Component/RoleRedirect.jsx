@@ -13,7 +13,7 @@ const RoleRedirect = () => {
   const role = user?.publicMetadata?.role;
 
   if (role === "admin") {
-    return <Navigate to="/admindashboard" />;
+    return <Navigate to="/admin-dashboard" />;
   }
 
   return <Navigate to="/userdashboard" />;

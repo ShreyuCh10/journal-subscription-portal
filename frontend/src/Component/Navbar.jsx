@@ -1,18 +1,19 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, isLoaded } = useUser();
-
-  const handleLogout = () => {
-    navigate("/login");
-  };
+  const { signOut } = useClerk();
 
   if (!isLoaded) return null;
 
-  const role = user?.publicMetadata?.role;   
+  const role = user?.publicMetadata?.role;
+
+  const handleLogout = async () => {
+    await signOut({ redirectUrl: "/login" });
+  };
 
   return (
     <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-16 flex items-center justify-end px-6 shadow-md">

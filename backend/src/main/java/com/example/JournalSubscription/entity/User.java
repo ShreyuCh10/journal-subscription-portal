@@ -4,49 +4,69 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Users")
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Integer userId;
-
-    @Column(name = "clerk_user_id", nullable = false, unique = true)
-    private String clerkUserId;
-
-    @Column(name = "user_name", nullable = false)
-    private String userName;
+    private Long id;
 
     @Column(nullable = false, unique = true)
+    private String clerkUserId;   // Main identity from Clerk
+
+    @Column(nullable = true, unique = true)
     private String email;
 
-    @Column(name = "role_name")
-    private String roleName;
+    private Boolean subscribed = false;
 
-    @Column(name = "created_at")
+    private Boolean interested = false;
+
     private LocalDateTime createdAt;
 
     @PrePersist
-    protected void onCreate() {
+    public void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Getters & Setters
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
+    // ===== Getters & Setters =====
 
-    public String getClerkUserId() { return clerkUserId; }
-    public void setClerkUserId(String clerkUserId) { this.clerkUserId = clerkUserId; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getUserName() { return userName; }
-    public void setUserName(String userName) { this.userName = userName; }
+    public String getClerkUserId() {
+        return clerkUserId;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setClerkUserId(String clerkUserId) {
+        this.clerkUserId = clerkUserId;
+    }
 
-    public String getRoleName() { return roleName; }
-    public void setRoleName(String roleName) { this.roleName = roleName; }
+    public String getEmail() {
+        return email;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Boolean getSubscribed() {
+        return subscribed;
+    }
+
+    public void setSubscribed(Boolean subscribed) {
+        this.subscribed = subscribed;
+    }
+
+    public Boolean getInterested() {
+        return interested;
+    }
+
+    public void setInterested(Boolean interested) {
+        this.interested = interested;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

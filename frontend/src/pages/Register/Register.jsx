@@ -3,7 +3,7 @@ import { useSignUp } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import "./Register.css";
-
+import { createUser } from "../../Service/UserApi";
 const Register = () => {
   const { isLoaded, signUp } = useSignUp();
   const navigate = useNavigate();
@@ -33,18 +33,28 @@ const Register = () => {
 
     setLoading(true);
     try {
-     
-      await signUp.create({
+      const result = await signUp.create({
         emailAddress,
         password,
         firstName: name.split(" ")[0] || "",
         lastName: name.split(" ").slice(1).join(" ") || "",
-        username: name.split(" ")[0] + Math.floor(Math.random() * 1000), // required by Clerk
+        username: name.split(" ")[0] + Math.floor(Math.random() * 1000),
         publicMetadata: {
-          role: "user"
-        }
+          role: "user",
+        },
       });
+
+      // 🔥 Create user in your backend DB
+      await createUser({
+        name,
+        email: emailAddress,
+        clerkUserId: result.id, // very important to link Clerk <-> DB
+        role: "user",
+      });
+
+      // Prepare email verification
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+
       navigate("/verify-email", { state: { name } });
     } catch (err) {
       console.error(err);

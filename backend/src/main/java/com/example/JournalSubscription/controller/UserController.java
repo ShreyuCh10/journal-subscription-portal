@@ -1,45 +1,41 @@
 package com.example.JournalSubscription.controller;
 
 import com.example.JournalSubscription.entity.User;
-import com.example.JournalSubscription.repository.UserRepository;
+import com.example.JournalSubscription.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    // Get all users
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    // 🔐 Get current logged-in user
+    @GetMapping("/me")
+    public User getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
+
+        String clerkUserId = jwt.getSubject();   // Clerk user ID
+        String email = jwt.getClaim("email");
+        System.out.println(jwt.getClaims());
+
+        return userService.syncUser(clerkUserId, email);
     }
 
-    // Get user by email
-    @GetMapping("/email/{email}")
-    public User getUserByEmail(@PathVariable String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+    @GetMapping("/interested")
+    public List<User> getInterestedUsers() {
+        return userService.findAllInterested();
     }
 
-    // Get user by Clerk ID
-    @GetMapping("/clerk/{clerkUserId}")
-    public User getUserByClerkId(@PathVariable String clerkUserId) {
-        return userRepository.findByClerkUserId(clerkUserId)
-                .orElseThrow(() -> new RuntimeException("User not found with Clerk ID: " + clerkUserId));
-    }
-
-    // Create user
-    @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userRepository.save(user);
+    @GetMapping("/not-subscribed")
+    public List<User> getNotSubscribedUsers() {
+        return userService.findAllNotSubscribed();
     }
 }

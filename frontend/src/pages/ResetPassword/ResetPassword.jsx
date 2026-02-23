@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import "./ResetPassword.css";
-
+import { getCurrentUser } from "../../Service/UserApi"; // adjust path if needed
 const ResetPassword = () => {
   const { signIn, isLoaded } = useSignIn();
   const navigate = useNavigate();
@@ -52,6 +52,16 @@ const ResetPassword = () => {
         code,
         password,
       });
+
+      // 🔥 Call your backend to get current user (sync / verify user)
+      try {
+        const { data } = await getCurrentUser();
+        console.log("Backend user after reset:", data);
+        localStorage.setItem("user", JSON.stringify(data));
+      } catch (apiErr) {
+        console.warn("Could not fetch backend user:", apiErr);
+        // Not fatal for password reset
+      }
 
       navigate("/login", { replace: true });
     } catch (err) {

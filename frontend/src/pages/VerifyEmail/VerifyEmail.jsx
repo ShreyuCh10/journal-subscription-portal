@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { useSignUp } from "@clerk/clerk-react";
+import { useSignUp, useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
+import { createUser } from "../../Service/UserApi"; // 👈 adjust path if needed
 import "./VerifyEmail.css";
 
 const VerifyEmail = () => {
   const { signUp, setActive, isLoaded } = useSignUp();
+  const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
 
   const [code, setCode] = useState("");
@@ -22,25 +24,24 @@ const VerifyEmail = () => {
       const res = await signUp.attemptEmailAddressVerification({ code });
       await setActive({ session: res.createdSessionId });
 
-      if(user){
-        console.log({
-        clerkUserId: user.id,
-        email: user.emailAddresses[0].emailAddress,
-        name: `${user.firstName} ${user.lastName}`,
-        });
-        
-        await fetch("http://localhost:8080/api/users/register",{
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({
-            clerkUSerId: user.id,
-            email: user.emailAddresses[0].emailAdress,
-            name: '${user.firstName} ${user.lastName}',
-          }),
-        });
+      // After session is active, Clerk user should be available
+      if (user) {
+        const userData = {
+          clerkUserId: user.id,
+          email: user.emailAddresses[0].emailAddress,
+          name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+          role: "user", // or "ngo"/"donor" if you support roles
+        };
+
+        console.log("Creating user in backend:", userData);
+
+        // 🔥 Use your userApi instead of fetch
+        await createUser(userData);
       }
-      navigate("/dashboard", {replace:true});
+
+      navigate("/dashboard", { replace: true });
     } catch (err) {
+      console.error(err);
       setError(err.errors?.[0]?.message || "Invalid verification code");
     } finally {
       setLoading(false);
