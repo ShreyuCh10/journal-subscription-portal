@@ -1,43 +1,16 @@
 import api from "./api";
 
-/* ===============================
-   GET ALL USERS
-================================= */
-export const getAllUsers = () => {
-  return api.get("/api/users");
-};
+/* CREATE USER */
+export const createUser = (userData) => api.post("/api/users", userData);
 
-/* ===============================
-   GET USER BY ID
-================================= */
-export const getUserById = (id) => {
-  return api.get(`/api/users/${id}`);
-};
+/* GET CURRENT USER */
+export const getCurrentUser = () => api.get("/api/users/me");
 
-/* ===============================
-   CREATE USER
-================================= */
-export const createUser = (userData) => {
-  return api.post("/api/users", userData);
-};
+/* GET ALL USERS (ADMIN) */
+export const getAllUsers = () => api.get("/api/users");
 
-/* ===============================
-   UPDATE USER
-================================= */
-export const updateUser = (id, userData) => {
-  return api.put(`/api/users/${id}`, userData);
-};
+/* GET INTERESTED USERS */
+export const getInterestedUsers = () => api.get("/api/users/interested");
 
-/* ===============================
-   DELETE USER
-================================= */
-export const deleteUser = (id) => {
-  return api.delete(`/api/users/${id}`);
-};
-
-/* ===============================
-   GET CURRENT LOGGED-IN USER
-================================= */
-export const getCurrentUser = () => {
-  return api.get("/api/users/me");
-};
+/* GET NOT SUBSCRIBED USERS */
+export const getNotSubscribedUsers= () => api.get("/api/users/not-subscribed");

@@ -1,5 +1,6 @@
 package com.example.JournalSubscription.controller;
-
+import com.example.JournalSubscription.dto.CreateUserRequest;
+import jakarta.validation.Valid;
 import com.example.JournalSubscription.entity.User;
 import com.example.JournalSubscription.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,5 +38,14 @@ public class UserController {
     @GetMapping("/not-subscribed")
     public List<User> getNotSubscribedUsers() {
         return userService.findAllNotSubscribed();
+    }
+
+    @PostMapping
+    public User createUser(@Valid @RequestBody CreateUserRequest request) {
+        return userService.createUser(request.getClerkUserId(), request.getEmail());
+    }
+    @GetMapping
+    public List<User> getAllUsers() {   // ✅ ADD THIS
+        return userService.findAll();
     }
 }

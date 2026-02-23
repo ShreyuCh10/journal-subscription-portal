@@ -45,12 +45,10 @@ const Register = () => {
       });
 
       // 🔥 Create user in your backend DB
-      await createUser({
-        name,
-        email: emailAddress,
-        clerkUserId: result.id, // very important to link Clerk <-> DB
-        role: "user",
-      });
+  await createUser({
+    clerkUserId: result.createdUserId || result.id,  // ✅ correct Clerk ID
+    email: emailAddress,                              // ✅ backend expects this
+  });
 
       // Prepare email verification
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });

@@ -33,6 +33,21 @@ public class UserService {
         return userRepository.findByClerkUserId(clerkUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+    public User createUser(String clerkUserId, String email) {
+
+        // Optional: prevent duplicates
+        userRepository.findByClerkUserId(clerkUserId).ifPresent(u -> {
+            throw new RuntimeException("User already exists");
+        });
+
+        User user = new User();
+        user.setClerkUserId(clerkUserId);
+        user.setEmail(email);
+        user.setSubscribed(false);
+        user.setInterested(false);
+
+        return userRepository.save(user);
+    }
 
     public List<User> findAllInterested() {
         return userRepository.findByInterestedTrue();
@@ -40,5 +55,8 @@ public class UserService {
 
     public List<User> findAllNotSubscribed() {
         return userRepository.findBySubscribedFalse();
+    }
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
 }

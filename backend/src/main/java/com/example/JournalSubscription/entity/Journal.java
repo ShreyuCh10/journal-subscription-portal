@@ -19,6 +19,8 @@ public class Journal {
     @Column(nullable = false)
     private String title;
 
+    @Lob   // ✅ This makes it TEXT / LONG in DB
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)

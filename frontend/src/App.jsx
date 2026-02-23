@@ -9,6 +9,7 @@ import ResetPassword from "./pages/ResetPassword/ResetPassword";
 
 
 import AdminDashboard from './pages/Dashboard/AdminDashboard/AdminDashboard';
+import AdminHome from "./pages/Dashboard/AdminDashboard/AdminHome";
 import ManageUsers from "./pages/Dashboard/AdminDashboard/ManageUsers";
 import ManageJournals from "./pages/Dashboard/AdminDashboard/ManageJournals";
 import ManageSubscription from "./pages/Dashboard/AdminDashboard/ManageSubscription";
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
       </ProtectedAdminRoute>
     ),
       children: [
+          { index: true, element: <AdminHome /> },
     { path: 'users', element: <ManageUsers /> },
     { path: 'journals', element: <ManageJournals /> },
     { path: 'subscriptions', element: <ManageSubscription /> },
