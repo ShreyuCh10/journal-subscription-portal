@@ -34,7 +34,7 @@ const UserSidebar = () => {
       <div className="px-4 space-y-2 mt-4">
         {/* DASHBOARD LINK - Added 'end' prop here */}
         <NavLink
-          to="/userdashboard"
+          to="/dashboard"
           end
           className={({ isActive }) =>
             `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
@@ -55,7 +55,7 @@ const UserSidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/userdashboard/subscriptions"
+          to="/dashboard/subscriptions"
           className={({ isActive }) =>
             `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
@@ -65,7 +65,7 @@ const UserSidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/userdashboard/payments"
+          to="/dashboard/payments"
           className={({ isActive }) =>
             `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
@@ -75,7 +75,7 @@ const UserSidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/userdashboard/profile"
+          to="/dashboard/profile"
           className={({ isActive }) =>
             `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
@@ -85,7 +85,7 @@ const UserSidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/userdashboard/settings"
+          to="/dashboard/settings"
           className={({ isActive }) =>
             `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
@@ -95,7 +95,7 @@ const UserSidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/userdashboard/support"
+          to="/dashboard/support"
           className={({ isActive }) =>
             `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }
