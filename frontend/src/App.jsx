@@ -2,10 +2,10 @@ import './App.css';
 import { useAuth } from "@clerk/clerk-react";
 import { setupInterceptors } from "./Service/api";
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Login from './pages/Login/Login';
-import Register from './pages/Register/Register';
-import VerifyEmail from './pages/VerifyEmail/VerifyEmail';
-import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import Login from './pages/Login';
+import Register from './pages//Register';
+import VerifyEmail from './pages/VerifyEmail';
+import ResetPassword from "./pages/ResetPassword";
 
 
 import AdminDashboard from './pages/Dashboard/AdminDashboard/AdminDashboard';
@@ -16,12 +16,13 @@ import ManageSubscription from "./pages/Dashboard/AdminDashboard/ManageSubscript
 
 import UserDashboard from "./pages/Dashboard/UserDashboard/Dashboard/Dashboard";
 import UserSummary from "./pages/Dashboard/UserDashboard/Dashboard/UserSummary";
-import BrowseJournals from "./pages/Dashboard/UserDashboard/BrowseJournals/BrowseJournals";
-import Subscriptions from "./pages/Dashboard/UserDashboard/Subscriptions/Subscriptions";
-import Payments from "./pages/Dashboard/UserDashboard/Payments/Payments";
-import Profile from "./pages/Dashboard/UserDashboard/Profile/Profile";
-import Settings from "./pages/Dashboard/UserDashboard/Settings/Settings";
-import Support from "./pages/Dashboard/UserDashboard/Support/Support";
+import BrowseJournals from "./pages/Dashboard/UserDashboard/BrowseJournals";
+import Subscriptions from "./pages/Dashboard/UserDashboard/Subscriptions";
+import Payments from "./pages/Dashboard/UserDashboard/Payments";
+import Profile from "./pages/Dashboard/UserDashboard/Profile";
+import Settings from "./pages/Dashboard/UserDashboard/Settings";
+import Support from "./pages/Dashboard/UserDashboard/Support";
+import JournalDetail from "./pages/Dashboard/UserDashboard/JournalDetail";
 
 import ProtectedAdminRoute from "./Component/ProtectedAdminRoute";
 import ProtectedUserRoute from "./Component/ProtectedUserRoute";
@@ -66,7 +67,7 @@ const router = createBrowserRouter([
 },
 
   {
-    path: '/userdashboard',
+    path: '/dashboard',
     element: (
       <ProtectedUserRoute>
         <UserDashboard />
@@ -80,6 +81,8 @@ const router = createBrowserRouter([
       { path: 'profile', element: <Profile /> },
       { path: 'settings', element: <Settings /> },
       { path: 'support', element: <Support /> },
+      {path: "journals/:id",element: <JournalDetail />},
+
     ],
   },
 ]);

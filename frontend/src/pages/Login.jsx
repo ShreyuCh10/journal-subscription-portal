@@ -1,8 +1,8 @@
 import { useSignIn, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./Login.css";
-import { getCurrentUser } from "../../Service/UserApi"; // adjust path if needed
+
+import { getCurrentUser } from "../Service/UserApi";
 
 const Login = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -29,16 +29,16 @@ const Login = () => {
 
       await setActive({ session: result.createdSessionId });
 
-      // 🔥 Call your backend to get current user
+
       const { data } = await getCurrentUser();
 
       console.log("Backend user:", data);
 
-      // You can store this in localStorage / context if you want
+
       localStorage.setItem("user", JSON.stringify(data));
 
-      // Redirect after login
-      navigate("/"); // change to your route z
+
+      navigate("/");
     } catch (err) {
       alert(err.errors?.[0]?.message || "Sign in failed");
     } finally {

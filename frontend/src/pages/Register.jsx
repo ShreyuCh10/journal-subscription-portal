@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useSignUp } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import "./Register.css";
-import { createUser } from "../../Service/UserApi";
+
+import { createUser } from "../Service/UserApi";
 const Register = () => {
   const { isLoaded, signUp } = useSignUp();
   const navigate = useNavigate();
@@ -44,13 +44,12 @@ const Register = () => {
         },
       });
 
-      // 🔥 Create user in your backend DB
+
   await createUser({
-    clerkUserId: result.createdUserId || result.id,  // ✅ correct Clerk ID
-    email: emailAddress,                              // ✅ backend expects this
+    clerkUserId: result.createdUserId || result.id,
+    email: emailAddress,
   });
 
-      // Prepare email verification
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
 
       navigate("/verify-email", { state: { name } });

@@ -45,7 +45,7 @@ const UserSidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/userdashboard/browse"
+          to="/dashboard/browse"
           className={({ isActive }) =>
             `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
           }

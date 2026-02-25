@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useSignUp, useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { createUser } from "../../Service/UserApi"; // 👈 adjust path if needed
-import "./VerifyEmail.css";
+import { createUser } from "../Service/UserApi"; // 👈 adjust path if needed
+
 
 const VerifyEmail = () => {
   const { signUp, setActive, isLoaded } = useSignUp();
@@ -24,18 +24,18 @@ const VerifyEmail = () => {
       const res = await signUp.attemptEmailAddressVerification({ code });
       await setActive({ session: res.createdSessionId });
 
-      // After session is active, Clerk user should be available
+
       if (user) {
         const userData = {
           clerkUserId: user.id,
           email: user.emailAddresses[0].emailAddress,
           name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-          role: "user", // or "ngo"/"donor" if you support roles
+          role: "user",
         };
 
         console.log("Creating user in backend:", userData);
 
-        // 🔥 Use your userApi instead of fetch
+
         await createUser(userData);
       }
 

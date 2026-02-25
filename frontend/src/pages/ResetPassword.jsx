@@ -2,8 +2,8 @@ import { useSignIn } from "@clerk/clerk-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import "./ResetPassword.css";
-import { getCurrentUser } from "../../Service/UserApi"; // adjust path if needed
+
+import { getCurrentUser } from "../Service/UserApi"; // adjust path if needed
 const ResetPassword = () => {
   const { signIn, isLoaded } = useSignIn();
   const navigate = useNavigate();
@@ -17,7 +17,6 @@ const ResetPassword = () => {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
 
-  // STEP 1: Send reset code
   const sendResetCode = async (e) => {
     e.preventDefault();
     if (!isLoaded) return;
@@ -38,7 +37,7 @@ const ResetPassword = () => {
     }
   };
 
-  // STEP 2: Verify code & reset password
+
   const resetPassword = async (e) => {
     e.preventDefault();
     if (!isLoaded) return;
@@ -53,14 +52,14 @@ const ResetPassword = () => {
         password,
       });
 
-      // 🔥 Call your backend to get current user (sync / verify user)
+
       try {
         const { data } = await getCurrentUser();
         console.log("Backend user after reset:", data);
         localStorage.setItem("user", JSON.stringify(data));
       } catch (apiErr) {
         console.warn("Could not fetch backend user:", apiErr);
-        // Not fatal for password reset
+
       }
 
       navigate("/login", { replace: true });

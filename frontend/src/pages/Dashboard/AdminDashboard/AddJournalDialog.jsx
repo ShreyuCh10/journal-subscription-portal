@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -8,14 +8,33 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { createJournal } from "../../../Service/JournalApi"; // 👈 import API
+import {
+  createJournal,
+  updateJournal,
+} from "../../../Service/JournalApi"; // 👈 make sure updateJournal exists
 
-const AddJournalDialog = ({ open, onClose, onAdd }) => {
+const AddJournalDialog = ({ open, onClose, journal, onSave }) => {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [publisher, setPublisher] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Prefill when editing
+  useEffect(() => {
+    if (journal) {
+      setTitle(journal.title || "");
+      setPrice(journal.price || "");
+      setDescription(journal.description || "");
+      setPublisher(journal.publisher || "");
+    } else {
+      // Reset when adding
+      setTitle("");
+      setPrice("");
+      setDescription("");
+      setPublisher("");
+    }
+  }, [journal, open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,18 +54,17 @@ const AddJournalDialog = ({ open, onClose, onAdd }) => {
     try {
       setLoading(true);
 
-      // 🔥 Save to backend
-      const res = await createJournal(journalPayload);
+      let res;
+      if (journal) {
+        // EDIT
+        res = await updateJournal(journal.id, journalPayload);
+      } else {
+        // ADD
+        res = await createJournal(journalPayload);
+      }
 
-      // Backend returns saved journal (with id)
-      onAdd(res.data);   // update table in parent
+      onSave(res.data); // send back to ManageJournals
       onClose();
-
-      // reset form
-      setTitle("");
-      setPrice("");
-      setDescription("");
-      setPublisher("");
     } catch (err) {
       console.error(err);
       alert("Failed to save journal");
@@ -57,7 +75,7 @@ const AddJournalDialog = ({ open, onClose, onAdd }) => {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Add New Journal</DialogTitle>
+      <DialogTitle>{journal ? "Edit Journal" : "Add New Journal"}</DialogTitle>
 
       <form onSubmit={handleSubmit}>
         <DialogContent>
@@ -104,7 +122,7 @@ const AddJournalDialog = ({ open, onClose, onAdd }) => {
             Cancel
           </Button>
           <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? "Saving..." : "Add Journal"}
+            {loading ? "Saving..." : journal ? "Update Journal" : "Add Journal"}
           </Button>
         </DialogActions>
       </form>

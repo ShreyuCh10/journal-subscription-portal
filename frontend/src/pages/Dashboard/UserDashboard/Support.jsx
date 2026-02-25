@@ -22,7 +22,7 @@ const Support = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Contact Form Section */}
+
         <div className="lg:col-span-2">
           <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">

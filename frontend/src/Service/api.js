@@ -9,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Attach token automatically before every request
 export const setupInterceptors = (getToken) => {
   api.interceptors.request.use(async (config) => {
     const token = await getToken();

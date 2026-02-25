@@ -1,17 +1,15 @@
-import { useUser } from "@clerk/clerk-react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
 
 const ProtectedUserRoute = ({ children }) => {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useAuth();
 
-  if (!isLoaded) return null;
-
-  if (!isSignedIn) {
-    return <Navigate to="/login" />;
+  if (!isLoaded) {
+    return null; // or a loader
   }
 
-  if (user?.publicMetadata?.role !== "user") {
-    return <Navigate to="/admin-dashboard" />;
+  if (!isSignedIn) {
+    return <Navigate to="/login" replace />;
   }
 
   return children;

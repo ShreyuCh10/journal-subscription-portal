@@ -16,7 +16,7 @@ const RoleRedirect = () => {
     return <Navigate to="/admin-dashboard" />;
   }
 
-  return <Navigate to="/user-dashboard" />;
+  return <Navigate to="/dashboard" />;
 };
 
 export default RoleRedirect;

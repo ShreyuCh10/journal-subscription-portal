@@ -1,11 +1,10 @@
 import api from "./api";
 
-// 📊 Dashboard Stats
+
 export const fetchAdminStats = () => {
   return api.get("/admin/stats");
 };
 
-// 👥 Users
 export const fetchAllUsers = () => {
   return api.get("/admin/users");
 };
@@ -18,7 +17,7 @@ export const deleteUser = (userId) => {
   return api.delete(`/admin/users/${userId}`);
 };
 
-// 📘 Journals
+
 export const fetchAllJournals = () => {
   return api.get("/admin/journals");
 };
@@ -31,7 +30,7 @@ export const rejectJournal = (journalId) => {
   return api.put(`/admin/journals/${journalId}/reject`);
 };
 
-// 💳 Subscriptions
+
 export const fetchAllSubscriptions = () => {
   return api.get("/admin/subscriptions");
 };

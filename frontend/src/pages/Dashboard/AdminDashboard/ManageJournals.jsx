@@ -17,15 +17,18 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddJournalDialog from "./AddJournalDialog";
-import { getAllJournals, deleteJournal as deleteJournalApi } from "../../../Service/JournalApi";
+import {
+  getAllJournals,
+  deleteJournal as deleteJournalApi,
+} from "../../../Service/JournalApi";
 
 const ManageJournals = () => {
   const [journals, setJournals] = useState([]);
-  const [openAdd, setOpenAdd] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedJournal, setSelectedJournal] = useState(null); // for edit
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 🔄 Fetch journals from backend
   useEffect(() => {
     const loadJournals = async () => {
       try {
@@ -42,21 +45,42 @@ const ManageJournals = () => {
     loadJournals();
   }, []);
 
-//   const handleDelete = async (id) => {
-//     if (!window.confirm("Are you sure you want to delete this journal?")) return;
-//
-//     try {
-//       await deleteJournalApi(id);
-//       setJournals((prev) => prev.filter((j) => j.id !== id));
-//     } catch (err) {
-//       console.error(err);
-//       alert("Failed to delete journal");
-//     }
-//   };
+  // DELETE
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this journal?")) return;
 
-  const handleAddJournal = (newJournal) => {
-    // After successful backend create, just refresh or append
-    setJournals((prev) => [newJournal, ...prev]);
+    try {
+      await deleteJournalApi(id);
+      setJournals((prev) => prev.filter((j) => j.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete journal");
+    }
+  };
+
+  // OPEN ADD
+  const handleAddClick = () => {
+    setSelectedJournal(null); // add mode
+    setOpenDialog(true);
+  };
+
+  // OPEN EDIT
+  const handleEditClick = (journal) => {
+    setSelectedJournal(journal); // edit mode
+    setOpenDialog(true);
+  };
+
+  // AFTER SAVE (ADD or EDIT)
+  const handleSaveJournal = (savedJournal) => {
+    if (selectedJournal) {
+      // EDIT: update existing row
+      setJournals((prev) =>
+        prev.map((j) => (j.id === savedJournal.id ? savedJournal : j))
+      );
+    } else {
+      // ADD: add to top
+      setJournals((prev) => [savedJournal, ...prev]);
+    }
   };
 
   if (loading) return <Typography>Loading journals...</Typography>;
@@ -64,7 +88,6 @@ const ManageJournals = () => {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {/* Header */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h5" fontWeight="bold">
           Manage Journals
@@ -73,13 +96,12 @@ const ManageJournals = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => setOpenAdd(true)}
+          onClick={handleAddClick}
         >
           Add Journal
         </Button>
       </Stack>
 
-      {/* Table */}
       <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
         <Table>
           <TableHead>
@@ -104,7 +126,10 @@ const ManageJournals = () => {
                     : "-"}
                 </TableCell>
                 <TableCell align="center">
-                  <IconButton color="primary">
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleEditClick(journal)}
+                  >
                     <EditIcon />
                   </IconButton>
                   <IconButton
@@ -130,11 +155,12 @@ const ManageJournals = () => {
         </Table>
       </TableContainer>
 
-      {/* Add Journal Dialog */}
+      {/* Add / Edit Dialog */}
       <AddJournalDialog
-        open={openAdd}
-        onClose={() => setOpenAdd(false)}
-        onAdd={handleAddJournal}
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        journal={selectedJournal}     // null = add, object = edit
+        onSave={handleSaveJournal}
       />
     </Box>
   );
