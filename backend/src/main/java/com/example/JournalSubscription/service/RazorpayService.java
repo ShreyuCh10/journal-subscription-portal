@@ -17,6 +17,9 @@ public class RazorpayService {
     private String keySecret;
 
     public Order createOrder(Double amount) throws RazorpayException {
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount cannot be null");
+        }
 
         RazorpayClient razorpay = new RazorpayClient(keyId, keySecret);
 

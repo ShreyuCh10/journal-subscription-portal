@@ -31,9 +31,7 @@ const UserSidebar = () => {
           alt="Journal Hub Logo"
           className="h-10 w-10 object-contain"
         />
-        <h3
-          className="ml-3 text-xl font-semibold text-gray-900 tracking-tight"
-        >
+        <h3 className="ml-3 text-xl font-semibold text-gray-900 tracking-tight">
           Journal Hub
         </h3>
       </div>

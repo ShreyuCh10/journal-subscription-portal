@@ -17,7 +17,7 @@ import ManageSubscription from "./pages/Dashboard/AdminDashboard/ManageSubscript
 import UserDashboard from "./pages/Dashboard/UserDashboard/Dashboard/Dashboard";
 import UserSummary from "./pages/Dashboard/UserDashboard/Dashboard/UserSummary";
 import BrowseJournals from "./pages/Dashboard/UserDashboard/BrowseJournals";
-import Subscriptions from "./pages/Dashboard/UserDashboard/Subscriptions";
+import MySubscriptions from "./pages/Dashboard/UserDashboard/MySubscriptions";
 import Payments from "./pages/Dashboard/UserDashboard/Payments";
 import Profile from "./pages/Dashboard/UserDashboard/Profile";
 import Settings from "./pages/Dashboard/UserDashboard/Settings";
@@ -78,7 +78,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <UserSummary /> },
       { path: 'browse', element: <BrowseJournals /> },
-      { path: 'subscriptions', element: <Subscriptions /> },
+      { path: 'subscriptions', element: <MySubscriptions /> },
         { path: "cart", element: <Cart /> },
       { path: 'payments', element: <Payments /> },
       { path: 'profile', element: <Profile /> },

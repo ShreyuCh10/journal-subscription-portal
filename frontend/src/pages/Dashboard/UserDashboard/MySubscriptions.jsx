@@ -14,7 +14,7 @@ import {
   FaCalendarAlt,
 } from "react-icons/fa";
 
-const ManageSubscription = () => {
+const MySubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,54 +75,7 @@ const ManageSubscription = () => {
     }
   };
 
-  const handleRenew = async (sub) => {
-    try {
-      const months = 6;
-      const amount = sub.price * months;
 
-      const orderRes = await createRazorpayOrder({
-        userId: sub.userId,
-        journalId: sub.journalId,
-        months,
-        amount,
-        renewalOfSubscriptionId: sub.id,
-      });
-
-      const { orderId, key } = orderRes.data;
-
-      const options = {
-        key,
-        amount,
-        currency: "INR",
-        name: "Journal Subscription",
-        order_id: orderId,
-
-        handler: async function (response) {
-          await verifyRazorpayPayment({
-            userId: sub.userId,
-            journalId: sub.journalId,
-            months,
-            amount,
-            renewalOfSubscriptionId: sub.id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_signature: response.razorpay_signature,
-          });
-
-          alert("Subscription Renewed Successfully 🎉");
-          loadSubscriptions();
-        },
-
-        theme: { color: "#3399cc" },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      console.error(error);
-      alert("Renewal failed.");
-    }
-  };
 
   if (loading) {
     return (
@@ -193,19 +146,12 @@ const ManageSubscription = () => {
                   </button>
                 )}
 
-                {isActive ? (
+                {isActive && (
                   <button
                     onClick={() => handleCancel(sub.id)}
                     className="bg-red-500 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-red-600 transition"
                   >
                     Cancel
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleRenew(sub)}
-                    className="bg-green-500 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-green-600 transition"
-                  >
-                    Renew
                   </button>
                 )}
               </div>
@@ -218,4 +164,4 @@ const ManageSubscription = () => {
   );
 };
 
-export default ManageSubscription;
+export default MySubscriptions;
