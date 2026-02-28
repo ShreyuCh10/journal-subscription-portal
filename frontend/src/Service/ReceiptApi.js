@@ -1,8 +1,11 @@
-
-
 import api from "./api";
 
-// Get receipt by payment ID
-export const getReceiptByPayment = (paymentId) => {
-  return api.get(`api/receipts/payment/${paymentId}`);
+export const getReceiptByPaymentId = (paymentId) => {
+  return api.get(`/api/receipts/payment/${paymentId}`);
+};
+
+export const downloadReceipt = (receiptId) => {
+  return api.get(`/api/receipts/download/${receiptId}`, {
+    responseType: "blob",
+  });
 };

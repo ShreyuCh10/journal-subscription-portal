@@ -1,23 +1,12 @@
 
 import api from "./api";
 
-
-
-export const getAllInvoices = () => {
-  return api.get(api/invoices);
-};
-
-
+// ✅ Get invoice by id
 export const getInvoiceById = (id) => {
-  return api.get(`api/invoices/${id}`);
+  return api.get(`/api/invoices/${id}`);
 };
 
-
-export const createInvoice = (invoice) => {
-  return api.post(api/invoices, invoice);
-};
-
-
-export const deleteInvoice = (id) => {
-  return api.delete(`api/invoices/${id}`);
+// ✅ Create invoice for a subscription
+export const createInvoiceForSubscription = (subscriptionId, amount) => {
+  return api.post(`/api/invoices/subscription/${subscriptionId}?amount=${amount}`);
 };

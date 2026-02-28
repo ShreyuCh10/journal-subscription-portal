@@ -12,47 +12,56 @@ const JournalCard = ({ journal }) => {
   return (
     <div
       onClick={handleClick}
-      className="cursor-pointer bg-white rounded-[2rem] overflow-hidden border border-slate-50 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col h-full"
+      className="group cursor-pointer bg-white rounded-2xl border border-gray-100
+                 shadow-sm hover:shadow-lg transition-all duration-300
+                 flex flex-col h-full overflow-hidden"
     >
-      {/* Image Section */}
+      {/* Image */}
       <div className="relative h-44 overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=400"
           alt={journal.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute top-3 left-3">
-          <span className="bg-white/90 backdrop-blur-sm text-slate-900 text-[9px] font-black uppercase px-2 py-1 rounded-full">
-            {journal.publisher || "Journal"}
-          </span>
-        </div>
+
+        <span className="absolute top-3 left-3 bg-white text-xs font-medium
+                         text-gray-700 px-3 py-1 rounded-full border border-gray-200">
+          {journal.publisher || "Journal"}
+        </span>
       </div>
 
       {/* Content */}
       <div className="p-5 flex flex-col flex-grow">
-        <div className="flex items-center gap-1 mb-2">
+
+        {/* Rating */}
+        <div className="flex items-center gap-2 mb-2 text-sm text-gray-500">
           <FaStar className="text-amber-400 text-xs" />
-          <span className="text-[10px] font-bold text-slate-500">4.8</span>
+          <span className="font-medium">4.8</span>
         </div>
 
-        <h2 className="text-base font-black text-slate-800 leading-tight mb-2 truncate">
+        {/* Title */}
+        <h2 className="text-base font-semibold text-gray-900 leading-tight mb-2 group-hover:text-indigo-600 transition-colors">
           {journal.title}
         </h2>
 
-        <p className="text-slate-500 text-[11px] font-medium mb-4 line-clamp-2 leading-relaxed">
+        {/* Description */}
+        <p className="text-sm text-gray-500 line-clamp-2 mb-4 leading-relaxed">
           {journal.description}
         </p>
 
-        <div className="mt-auto pt-4 border-t border-slate-50 flex justify-between items-center">
+        {/* Footer */}
+        <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
+
           <div>
-            <span className="text-[8px] text-slate-400 font-black uppercase block">
+            <span className="text-xs text-gray-400 uppercase tracking-wide">
               Monthly
             </span>
-            <span className="text-lg font-black text-slate-900">
+            <div className="text-lg font-semibold text-gray-900">
               ₹{journal.price}
-            </span>
+            </div>
           </div>
-          <FaExternalLinkAlt className="text-xs text-slate-600" />
+
+          <FaExternalLinkAlt className="text-gray-400 group-hover:text-indigo-600 transition-colors" />
         </div>
       </div>
     </div>

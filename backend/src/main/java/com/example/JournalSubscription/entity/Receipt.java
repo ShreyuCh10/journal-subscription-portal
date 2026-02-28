@@ -11,6 +11,8 @@ public class Receipt {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long receiptId;
 
+
+
     @OneToOne
     @JoinColumn(name = "payment_id", nullable = false)
     private Payment payment;
@@ -27,9 +29,7 @@ public class Receipt {
 
     // ===== GETTERS & SETTERS =====
 
-    public Long getReceiptId() {
-        return receiptId;
-    }
+
 
     public Payment getPayment() {
         return payment;
@@ -54,4 +54,5 @@ public class Receipt {
     public void setGeneratedAt(LocalDateTime generatedAt) {
         this.generatedAt = generatedAt;
     }
+    public Long getReceiptId() { return receiptId; }
 }

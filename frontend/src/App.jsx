@@ -23,7 +23,9 @@ import Profile from "./pages/Dashboard/UserDashboard/Profile";
 import Settings from "./pages/Dashboard/UserDashboard/Settings";
 import Support from "./pages/Dashboard/UserDashboard/Support";
 import JournalDetail from "./pages/Dashboard/UserDashboard/JournalDetail";
-
+import Cart from "./pages/Dashboard/UserDashboard/Cart";
+import Checkout from "./pages/dashboard/UserDashboard/Checkout"
+import Receipt from "./pages/dashboard/UserDashboard/Receipt"
 import ProtectedAdminRoute from "./Component/ProtectedAdminRoute";
 import ProtectedUserRoute from "./Component/ProtectedUserRoute";
 import RoleRedirect from "./Component/RoleRedirect";
@@ -77,11 +79,14 @@ const router = createBrowserRouter([
       { index: true, element: <UserSummary /> },
       { path: 'browse', element: <BrowseJournals /> },
       { path: 'subscriptions', element: <Subscriptions /> },
+        { path: "cart", element: <Cart /> },
       { path: 'payments', element: <Payments /> },
       { path: 'profile', element: <Profile /> },
       { path: 'settings', element: <Settings /> },
       { path: 'support', element: <Support /> },
       {path: "journals/:id",element: <JournalDetail />},
+      {path:"checkout",element:<Checkout/>},
+      {path:"receipt/:id", element:<Receipt />} ,
 
     ],
   },

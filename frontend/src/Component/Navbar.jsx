@@ -1,9 +1,8 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
+import { FaSignOutAlt } from "react-icons/fa";
 
 const Navbar = () => {
-  const navigate = useNavigate();
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
 
@@ -16,17 +15,44 @@ const Navbar = () => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-16 flex items-center justify-end px-6 shadow-md">
-      <h2 className="text-xl font-bold text-white mr-6">
-        {role === "admin" ? "Welcome, Admin" : "Welcome, User"}
-      </h2>
+    <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
 
-      <button
-        onClick={handleLogout}
-        className="bg-white text-blue-700 font-semibold px-4 py-1.5 rounded-md hover:bg-gray-100 transition"
-      >
-        Logout
-      </button>
+      {/* Left Section */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">
+          {role === "admin" ? "Admin Dashboard" : "User Dashboard"}
+        </h2>
+        <p className="text-xs text-gray-400">
+          Welcome back, {user?.firstName || "User"}
+        </p>
+      </div>
+
+      {/* Right Section */}
+      <div className="flex items-center gap-5">
+
+        {/* Role Badge */}
+        <span className="px-3 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-600">
+          {role === "admin" ? "Admin" : "User"}
+        </span>
+
+        {/* User Avatar */}
+        <div className="flex items-center gap-3">
+          <img
+            src={user?.imageUrl}
+            alt="profile"
+            className="w-9 h-9 rounded-full border border-gray-200"
+          />
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-red-500 transition"
+          >
+            <FaSignOutAlt />
+            Logout
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 };

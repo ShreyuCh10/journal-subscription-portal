@@ -1,6 +1,7 @@
 package com.example.JournalSubscription.service;
 
 import com.example.JournalSubscription.entity.Invoice;
+import com.example.JournalSubscription.entity.InvoiceStatus;
 import com.example.JournalSubscription.entity.Payment;
 import com.example.JournalSubscription.entity.Receipt;
 import com.example.JournalSubscription.entity.Subscription;
@@ -28,30 +29,45 @@ public class PaymentService {
         this.receiptRepository = receiptRepository;
     }
 
-    public Payment processPayment(Long invoiceId, String method) {
+    public Payment processPayment(
+            Long invoiceId,
+            String method,
+            String razorpayPaymentId,
+            String razorpayOrderId
+    ) {
 
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
-        // Create payment
+        // ✅ Create payment
         Payment payment = new Payment();
         payment.setInvoice(invoice);
         payment.setAmount(invoice.getAmount());
         payment.setPaymentMethod(method);
         payment.setStatus(Payment.PaymentStatus.SUCCESS);
 
+        // 🔥 VERY IMPORTANT (Fix)
+        payment.setRazorpayPaymentId(razorpayPaymentId);
+        payment.setRazorpayOrderId(razorpayOrderId);
+
         Payment savedPayment = paymentRepository.save(payment);
 
-        // Update invoice
-        invoice.setStatus(Invoice.InvoiceStatus.PAID);
+        // ✅ Update invoice
+        invoice.setStatus(InvoiceStatus.PAID);
         invoiceRepository.save(invoice);
 
-        // Activate subscription
-        Subscription subscription = invoice.getSubscription();
+        // ✅ Activate subscription
+        Subscription subscription = subscriptionRepository
+                .findById(invoice.getSubscriptionId())
+                .orElseThrow(() -> new RuntimeException("Subscription not found"));
+
+        payment.setSubscription(subscription);
+
+        paymentRepository.save(payment);
+
         subscription.setStatus(Subscription.SubscriptionStatus.ACTIVE);
         subscriptionRepository.save(subscription);
-
-        // Generate receipt
+        // ✅ Generate receipt
         Receipt receipt = new Receipt();
         receipt.setPayment(savedPayment);
         receipt.setReceiptNumber("REC-" + System.currentTimeMillis());

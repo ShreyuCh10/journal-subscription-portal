@@ -9,61 +9,39 @@ public class Invoice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long invoiceId;
+    @Column(name = "invoice_id")
+    private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "subscription_id", nullable = false)
-    private Subscription subscription;
-
-    private Double amount;
-
-    @Column(nullable = false, unique = true)
+    @Column(name = "invoice_number", nullable = false, unique = true)
     private String invoiceNumber;
 
-    public enum InvoiceStatus {
-        GENERATED,
-        PAID,
-        CANCELLED
-    }
+    @Column(name = "amount", nullable = false)
+    private Double amount;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private InvoiceStatus status;
-
+    @Column(name = "issued_date", nullable = false)
     private LocalDateTime issuedDate;
 
-    @PrePersist
-    public void onCreate() {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private InvoiceStatus status;
+
+    @Column(name = "subscription_id", nullable = false)
+    private Long subscriptionId;
+
+    // ===== CONSTRUCTORS =====
+    public Invoice() {
         this.issuedDate = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = InvoiceStatus.GENERATED;
-        }
+        this.status = InvoiceStatus.GENERATED;
     }
 
     // ===== GETTERS & SETTERS =====
 
-    public Long getInvoiceId() {
-        return invoiceId;
+    public Long getId() {
+        return id;
     }
 
-    public void setInvoiceId(Long invoiceId) {
-        this.invoiceId = invoiceId;
-    }
-
-    public Subscription getSubscription() {
-        return subscription;
-    }
-
-    public void setSubscription(Subscription subscription) {
-        this.subscription = subscription;
-    }
-
-    public Double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Double amount) {
-        this.amount = amount;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getInvoiceNumber() {
@@ -74,12 +52,12 @@ public class Invoice {
         this.invoiceNumber = invoiceNumber;
     }
 
-    public InvoiceStatus getStatus() {
-        return status;
+    public Double getAmount() {
+        return amount;
     }
 
-    public void setStatus(InvoiceStatus status) {
-        this.status = status;
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 
     public LocalDateTime getIssuedDate() {
@@ -88,5 +66,21 @@ public class Invoice {
 
     public void setIssuedDate(LocalDateTime issuedDate) {
         this.issuedDate = issuedDate;
+    }
+
+    public InvoiceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(InvoiceStatus status) {
+        this.status = status;
+    }
+
+    public Long getSubscriptionId() {
+        return subscriptionId;
+    }
+
+    public void setSubscriptionId(Long subscriptionId) {
+        this.subscriptionId = subscriptionId;
     }
 }

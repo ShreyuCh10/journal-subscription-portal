@@ -11,3 +11,7 @@ export const processPayment = (invoiceId, method) => {
 export const getPaymentByInvoice = (invoiceId) => {
   return api.get(`api/payments/invoice/${invoiceId}`);
 };
+
+export const payInvoice = (invoiceId, method) => {
+  return api.post(`/api/payments/invoice/${invoiceId}?method=${method}`);
+};
