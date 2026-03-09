@@ -24,8 +24,11 @@ import Settings from "./pages/Dashboard/UserDashboard/Settings";
 import Support from "./pages/Dashboard/UserDashboard/Support";
 import JournalDetail from "./pages/Dashboard/UserDashboard/JournalDetail";
 import Cart from "./pages/Dashboard/UserDashboard/Cart";
-import Checkout from "./pages/dashboard/UserDashboard/Checkout"
-import Receipt from "./pages/dashboard/UserDashboard/Receipt"
+import Checkout from "./pages/Dashboard/UserDashboard/Checkout"
+import Receipt from "./pages/Dashboard/UserDashboard/Receipt"
+
+
+
 import ProtectedAdminRoute from "./Component/ProtectedAdminRoute";
 import ProtectedUserRoute from "./Component/ProtectedUserRoute";
 import RoleRedirect from "./Component/RoleRedirect";

@@ -4,17 +4,19 @@ import { Navigate } from "react-router-dom";
 const ProtectedAdminRoute = ({ children }) => {
   const { user, isLoaded, isSignedIn } = useUser();
 
-  if (!isLoaded) return null; // or a loader
+  if (!isLoaded) return null;
 
   if (!isSignedIn) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.publicMetadata?.role !== "admin") {
-    return <Navigate to="/dashboard" replace />;
+  const role = user?.publicMetadata?.role;
+
+  if (role === "admin") {
+    return children;
   }
 
-  return children;
+  return <Navigate to="/dashboard" replace />;
 };
 
 export default ProtectedAdminRoute;

@@ -3,7 +3,23 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { getCurrentUser } from "../Service/UserApi";
-
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Divider,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  Stepper,
+  Step,
+  StepLabel
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 const ResetPassword = () => {
   const { signIn, isLoaded } = useSignIn();
   const navigate = useNavigate();
@@ -60,176 +76,178 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center px-4">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #f9fafb 0%, #eef2ff 100%)",
+      }}
+    >
+      <Container maxWidth="xs">
+        <Card
+          sx={{
+            px: 4,
+            py: 5,
+            borderRadius: 4,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
+          }}
+        >
+          <CardContent sx={{ p: 0 }}>
 
-      {/* Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+            {/* Brand */}
+            <Box textAlign="center" mb={4}>
+              <Typography
+                variant="h5"
+                color="primary"
+                sx={{ fontWeight: 700, letterSpacing: "-0.5px" }}
+              >
+                JournalHub
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {step === 1 ? "Reset your password" : "Create new password"}
+              </Typography>
+            </Box>
 
-        {/* Logo */}
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-            <span className="text-white text-xs font-bold">JH</span>
-          </div>
-          <span className="text-blue-900 font-bold text-lg">JournalHub</span>
-        </div>
+            {/* Stepper */}
+            <Stepper activeStep={step - 1} alternativeLabel sx={{ mb: 4 }}>
+              <Step>
+                <StepLabel>Email</StepLabel>
+              </Step>
+              <Step>
+                <StepLabel>Verify</StepLabel>
+              </Step>
+            </Stepper>
 
-        {/* Step Indicator */}
-        <div className="flex items-center gap-2 mb-6">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-            step >= 1 ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"
-          }`}>
-            1
-          </div>
-          <div className={`flex-1 h-px ${step === 2 ? "bg-blue-600" : "bg-slate-200"}`} />
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-            step === 2 ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"
-          }`}>
-            2
-          </div>
-        </div>
+            {/* Error */}
+            {error && (
+              <Box mb={2}>
+                <Typography color="error" variant="body2">
+                  {error}
+                </Typography>
+              </Box>
+            )}
 
-        {/* Heading */}
-        <h2 className="text-2xl font-bold text-blue-900 mb-1">
-          {step === 1 ? "Reset Password" : "Create New Password"}
-        </h2>
-        <p className="text-slate-400 text-sm mb-6">
-          {step === 1
-            ? "Enter your email and we'll send you a reset code"
-            : "Enter the code sent to your email and set a new password"}
-        </p>
+            {/* Step 1 */}
+            {step === 1 && (
+              <Box component="form" onSubmit={sendResetCode}>
+                <TextField
+                  label="Email Address"
+                  type="email"
+                  fullWidth
+                  size="small"
+                  margin="normal"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-5">
-            {error}
-          </div>
-        )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  sx={{ mt: 3, py: 1.2 }}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    "Send Reset Code"
+                  )}
+                </Button>
+              </Box>
+            )}
 
-        {/* ── Step 1: Email ── */}
-        {step === 1 && (
-          <form onSubmit={sendResetCode} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-slate-600 block mb-1">
-                Email address
-              </label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              />
-            </div>
+            {/* Step 2 */}
+            {step === 2 && (
+              <Box component="form" onSubmit={resetPassword}>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border-none"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Sending...
-                </span>
-              ) : (
-                "Send Reset Code"
-              )}
-            </button>
-          </form>
-        )}
+                <TextField
+                  label="Verification Code"
+                  fullWidth
+                  size="small"
+                  margin="normal"
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  inputProps={{ style: { letterSpacing: "4px" } }}
+                />
 
-        {/* ── Step 2: Code + New Password ── */}
-        {step === 2 && (
-          <form onSubmit={resetPassword} className="space-y-4">
-
-            {/* Verification Code */}
-            <div>
-              <label className="text-sm font-medium text-slate-600 block mb-1">
-                Verification Code
-              </label>
-              <input
-                type="text"
-                placeholder="Enter 6-digit code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                required
-                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition tracking-widest"
-              />
-            </div>
-
-            {/* New Password */}
-            <div>
-              <label className="text-sm font-medium text-slate-600 block mb-1">
-                New Password
-              </label>
-              <div className="relative">
-                <input
+                <TextField
+                  label="New Password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Create a new password"
+                  fullWidth
+                  size="small"
+                  margin="normal"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition pr-10"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  sx={{ mt: 3, py: 1.2 }}
+                  disabled={loading}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
+                  {loading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    "Reset Password"
+                  )}
+                </Button>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border-none"
+                <Button
+                  onClick={() => { setStep(1); setError(""); }}
+                  fullWidth
+                  sx={{ mt: 1 }}
+                >
+                  Use a different email
+                </Button>
+              </Box>
+            )}
+
+            <Divider sx={{ my: 3 }} />
+
+            <Typography
+              variant="caption"
+              display="block"
+              textAlign="center"
+              color="text.secondary"
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Resetting...
-                </span>
-              ) : (
-                "Reset Password"
-              )}
-            </button>
+              Remember your password?{" "}
+              <Typography
+                component={Link}
+                to="/login"
+                color="secondary"
+                sx={{
+                  textDecoration: "none",
+                  fontWeight: 600,
+                  fontSize: "0.8rem",
+                }}
+              >
+                Sign in
+              </Typography>
+            </Typography>
 
-            {/* Back to step 1 */}
-            <button
-              type="button"
-              onClick={() => { setStep(1); setError(""); }}
-              className="w-full text-sm text-slate-400 hover:text-blue-600 transition bg-transparent border-none cursor-pointer"
-            >
-              ← Use a different email
-            </button>
-          </form>
-        )}
-
-        {/* Back to Login */}
-        <div className="flex items-center gap-3 my-6">
-          <div className="flex-1 h-px bg-slate-200" />
-          <span className="text-xs text-slate-400">or</span>
-          <div className="flex-1 h-px bg-slate-200" />
-        </div>
-
-        <p className="text-center text-sm text-slate-500">
-          Remember your password?{" "}
-          <Link to="/login" className="text-blue-600 font-medium hover:underline">
-            Sign in
-          </Link>
-        </p>
-
-      </div>
-    </div>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 };
 

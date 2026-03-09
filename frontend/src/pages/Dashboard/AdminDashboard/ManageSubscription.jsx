@@ -1,132 +1,272 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Chip,
+  Button,
+  TextField,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
+  Divider
+} from "@mui/material";
 
 const ManageSubscription = () => {
   const [subscriptions, setSubscriptions] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedSub, setSelectedSub] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/admin/subscriptions")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch subscriptions");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setSubscriptions(data.data); 
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Failed to load subscriptions");
-        setLoading(false);
-      });
+    fetchSubscriptions();
   }, []);
 
-  const handleCancel = async (id) => {
+  const fetchSubscriptions = async () => {
     try {
-      await fetch(`http://localhost:5000/api/admin/subscriptions/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "cancelled" }),
-      });
+      const res = await fetch("http://localhost:5000/api/admin/subscriptions");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setSubscriptions(data.data);
+      setFiltered(data.data);
+    } catch (err) {
+      setError("Failed to load subscriptions");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔎 Search + Filter Logic
+  useEffect(() => {
+    let result = subscriptions;
+
+    if (search) {
+      result = result.filter((sub) =>
+        sub.userName.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== "all") {
+      result = result.filter((sub) => sub.status === statusFilter);
+    }
+
+    setFiltered(result);
+  }, [search, statusFilter, subscriptions]);
+
+  const handleCancel = async () => {
+    try {
+      await fetch(
+        `http://localhost:5000/api/admin/subscriptions/${selectedSub._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "cancelled" }),
+        }
+      );
 
       setSubscriptions((prev) =>
         prev.map((sub) =>
-          sub._id === id ? { ...sub, status: "cancelled" } : sub
+          sub._id === selectedSub._id
+            ? { ...sub, status: "cancelled" }
+            : sub
         )
       );
+
+      setSelectedSub(null);
     } catch (error) {
       console.error("Cancel failed:", error);
     }
   };
 
-  const getStatusStyle = (status) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-700";
+        return "success";
       case "expired":
-        return "bg-yellow-100 text-yellow-700";
+        return "warning";
       case "cancelled":
-        return "bg-red-100 text-red-700";
+        return "error";
       default:
-        return "";
+        return "default";
     }
   };
 
-  if (loading) return <div className="text-lg">Loading subscriptions...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  // 📊 Summary Data
+  const total = subscriptions.length;
+  const active = subscriptions.filter((s) => s.status === "active").length;
+  const revenue = subscriptions.reduce((sum, s) => sum + s.price, 0);
+
+  if (loading)
+    return (
+      <Box display="flex" justifyContent="center" mt={5}>
+        <CircularProgress />
+      </Box>
+    );
+
+  if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Manage Subscriptions</h1>
+    <Box sx={{ px: 4, py: 4 }}>
+      <Typography variant="h4" mb={3}>
+        Manage Subscriptions
+      </Typography>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full text-left">
-          <thead className="bg-gray-100 border-b">
-            <tr>
-              <th className="px-6 py-3">User</th>
-              <th className="px-6 py-3">Plan</th>
-              <th className="px-6 py-3">Price (₹)</th>
-              <th className="px-6 py-3">Start Date</th>
-              <th className="px-6 py-3">End Date</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3 text-center">Action</th>
-            </tr>
-          </thead>
+      {/* 📊 Summary Cards */}
+      <Grid container spacing={3} mb={4}>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary">Total Subscriptions</Typography>
+              <Typography variant="h5" fontWeight={600}>{total}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
 
-          <tbody>
-            {subscriptions?.map((sub) => (
-              <tr key={sub._id} className="border-b hover:bg-gray-50">
-                <td className="px-6 py-3">
-                  <div className="font-medium">{sub.userName}</div>
-                  <div className="text-sm text-gray-500">{sub.email}</div>
-                </td>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary">Active</Typography>
+              <Typography variant="h5" fontWeight={600} color="success.main">
+                {active}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
 
-                <td className="px-6 py-3">{sub.plan}</td>
-                <td className="px-6 py-3">₹{sub.price}</td>
-                <td className="px-6 py-3">
-                  {new Date(sub.startDate).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-3">
-                  {new Date(sub.endDate).toLocaleDateString()}
-                </td>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary">Total Revenue</Typography>
+              <Typography variant="h5" fontWeight={600} color="secondary.main">
+                ₹{revenue}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
-                <td className="px-6 py-3">
-                  <span
-                    className={`px-3 py-1 text-sm rounded-full capitalize ${getStatusStyle(
-                      sub.status
-                    )}`}
-                  >
-                    {sub.status}
-                  </span>
-                </td>
+      {/* 🔍 Filters */}
+      <Box display="flex" gap={2} mb={3}>
+        <TextField
+          label="Search by User"
+          size="small"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-                <td className="px-6 py-3 text-center">
-                  {sub.status === "active" && (
-                    <button
-                      onClick={() => handleCancel(sub._id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+        <TextField
+          select
+          label="Status"
+          size="small"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          sx={{ width: 160 }}
+        >
+          <MenuItem value="all">All</MenuItem>
+          <MenuItem value="active">Active</MenuItem>
+          <MenuItem value="expired">Expired</MenuItem>
+          <MenuItem value="cancelled">Cancelled</MenuItem>
+        </TextField>
+      </Box>
 
-            {subscriptions.length === 0 && (
-              <tr>
-                <td colSpan="7" className="text-center py-6 text-gray-500">
-                  No subscriptions found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {/* 📋 Table */}
+      <Card>
+        <CardContent>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>User</TableCell>
+                <TableCell>Plan</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Start</TableCell>
+                <TableCell>End</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="center">Action</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {filtered.map((sub) => (
+                <TableRow key={sub._id} hover>
+                  <TableCell>
+                    <Typography fontWeight={600}>
+                      {sub.userName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {sub.email}
+                    </Typography>
+                  </TableCell>
+
+                  <TableCell>{sub.plan}</TableCell>
+                  <TableCell>₹{sub.price}</TableCell>
+                  <TableCell>
+                    {new Date(sub.startDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(sub.endDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={sub.status}
+                      color={getStatusColor(sub.status)}
+                      size="small"
+                    />
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {sub.status === "active" && (
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => setSelectedSub(sub)}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    No subscriptions found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* 🛑 Cancel Confirmation Dialog */}
+      <Dialog open={!!selectedSub} onClose={() => setSelectedSub(null)}>
+        <DialogTitle>Cancel Subscription?</DialogTitle>
+        <DialogContent>
+          Are you sure you want to cancel this subscription?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedSub(null)}>No</Button>
+          <Button color="error" onClick={handleCancel}>
+            Yes, Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

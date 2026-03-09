@@ -1,11 +1,11 @@
 import React from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { FaSignOutAlt } from "react-icons/fa";
-
+import { useNavigate } from "react-router-dom";
 const Navbar = () => {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
-
+const navigate = useNavigate();
   if (!isLoaded) return null;
 
   const role = user?.publicMetadata?.role;
@@ -13,6 +13,15 @@ const Navbar = () => {
   const handleLogout = async () => {
     await signOut({ redirectUrl: "/login" });
   };
+
+
+const handleProfileClick = () => {
+  if (role === "admin") {
+    navigate("/admin-dashboard/profile");
+  } else {
+    navigate("/dashboard/profile");
+  }
+};
 
   return (
     <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
@@ -37,11 +46,12 @@ const Navbar = () => {
 
         {/* User Avatar */}
         <div className="flex items-center gap-3">
-          <img
-            src={user?.imageUrl}
-            alt="profile"
-            className="w-9 h-9 rounded-full border border-gray-200"
-          />
+        <img
+          src={user?.imageUrl}
+          alt="profile"
+          onClick={handleProfileClick}
+          className="w-9 h-9 rounded-full border border-gray-200 cursor-pointer hover:scale-105 transition"
+        />
 
           <button
             onClick={handleLogout}

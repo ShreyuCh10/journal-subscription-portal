@@ -1,6 +1,17 @@
 import { useSignIn } from "@clerk/clerk-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Divider,
+  CircularProgress
+} from "@mui/material";
 import { getCurrentUser } from "../Service/UserApi";
 
 const Login = () => {
@@ -11,7 +22,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -33,126 +43,143 @@ const Login = () => {
 
       navigate("/");
     } catch (err) {
-      setError(err.errors?.[0]?.message || "Sign in failed. Please try again.");
+      setError(err.errors?.[0]?.message || "Sign in failed.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center px-4">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #f9fafb 0%, #eef2ff 100%)",
+      }}
+    >
+      <Container maxWidth="xs">
+        <Card
+          sx={{
+            px: 4,
+            py: 5,
+            borderRadius: 4,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
+          }}
+        >
+          <CardContent sx={{ p: 0 }}>
 
-      {/* Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+            {/* Logo / Brand */}
+            <Box textAlign="center" mb={4}>
+              <Typography
+                variant="h5"
+                color="primary"
+                sx={{ fontWeight: 700, letterSpacing: "-0.5px" }}
+              >
+                JournalHub
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
+                Welcome back
+              </Typography>
+            </Box>
 
-        {/* Logo */}
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-            <span className="text-white text-xs font-bold">JH</span>
-          </div>
-          <span className="text-blue-900 font-bold text-lg">JournalHub</span>
-        </div>
+            {/* Error */}
+            {error && (
+              <Box mb={2}>
+                <Typography color="error" variant="body2">
+                  {error}
+                </Typography>
+              </Box>
+            )}
 
-        {/* Heading */}
-        <h2 className="text-2xl font-bold text-blue-900 mb-1">Welcome back</h2>
-        <p className="text-slate-400 text-sm mb-6">Sign in to your account to continue</p>
+            {/* Form */}
+            <Box component="form" onSubmit={handleSignIn}>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-5">
-            {error}
-          </div>
-        )}
+              <TextField
+                label="Email"
+                type="email"
+                fullWidth
+                size="small"
+                margin="normal"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
 
-        {/* Form */}
-        <form onSubmit={handleSignIn} className="space-y-4">
-
-          {/* Email */}
-          <div>
-            <label className="text-sm font-medium text-slate-600 block mb-1">
-              Email address
-            </label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="text-sm font-medium text-slate-600 block mb-1">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                size="small"
+                margin="normal"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition pr-12"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs bg-transparent border-none cursor-pointer"
+
+              <Box display="flex" justifyContent="flex-end" mt={1}>
+                <Typography
+                  component={Link}
+                  to="/reset-password"
+                  variant="caption"
+                  color="secondary"
+                  sx={{ textDecoration: "none" }}
+                >
+                  Forgot password?
+                </Typography>
+              </Box>
+
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{
+                  mt: 3,
+                  py: 1.2,
+                  fontSize: "0.9rem",
+                }}
+                disabled={loading}
               >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-          </div>
+                {loading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </Box>
 
-          {/* Forgot Password */}
-          <div className="flex justify-end">
-            <Link
-              to="/reset-password"
-              className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+            <Divider sx={{ my: 3 }} />
+
+            <Typography
+              variant="caption"
+              display="block"
+              textAlign="center"
+              color="text.secondary"
             >
-              Forgot password?
-            </Link>
-          </div>
+              Don’t have an account?{" "}
+              <Typography
+                component={Link}
+                to="/register"
+                color="secondary"
+                sx={{
+                  textDecoration: "none",
+                  fontWeight: 600,
+                  fontSize: "0.8rem",
+                }}
+              >
+                Sign up
+              </Typography>
+            </Typography>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border-none"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                </svg>
-                Signing in...
-              </span>
-            ) : (
-              "Sign In"
-            )}
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3 my-6">
-          <div className="flex-1 h-px bg-slate-200" />
-          <span className="text-xs text-slate-400">or</span>
-          <div className="flex-1 h-px bg-slate-200" />
-        </div>
-
-        {/* Register Link */}
-        <p className="text-center text-sm text-slate-500">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 font-medium hover:underline">
-            Sign up for free
-          </Link>
-        </p>
-
-      </div>
-    </div>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 };
 

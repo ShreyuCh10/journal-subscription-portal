@@ -1,122 +1,123 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
-  FaTachometerAlt,
-  FaUsers,
-  FaBook,
-  FaCreditCard,
-  FaChartBar,
-  FaCog,
-} from "react-icons/fa";
+  Box,
+  Typography,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider
+} from "@mui/material";
+import {
+  Dashboard,
+  People,
+  Subscriptions,
+  MenuBook,
+  CreditCard,
+  LocalShipping,
+  BarChart,
+  Settings
+} from "@mui/icons-material";
 
 const AdminSidebar = () => {
+  const menuItems = [
+    { text: "Dashboard", icon: <Dashboard />, path: "/admin-dashboard" },
+    { text: "Users", icon: <People />, path: "/admin-dashboard/users" },
+    { text: "Subscriptions", icon: <Subscriptions />, path: "/admin-dashboard/subscriptions" },
+    { text: "Payments", icon: <CreditCard />, path: "/admin-dashboard/payments" },
+    { text: "Dispatch", icon: <LocalShipping />, path: "/admin-dashboard/dispatch" },
+    { text: "Journals", icon: <MenuBook />, path: "/admin-dashboard/journals" },
+    { text: "Reports", icon: <BarChart />, path: "/admin-dashboard/reports" },
+    { text: "Settings", icon: <Settings />, path: "/admin-dashboard/settings" },
+  ];
+
   return (
-    <div className="bg-gray-800 text-white h-screen fixed left-0 top-0 w-64 shadow-lg flex flex-col">
-
-      <div className="bg-gradient-to-r from-blue-500 to-purple-700 h-20 flex items-center justify-center shadow-md">
-        <div className="flex items-center space-x-4">
-          <img
-            src="/image.svg"
-            alt="Journal Hub Logo"
-            className="h-14 w-14 object-cover"
-          />
-          <h3
-            className="text-2xl font-semibold tracking-wider text-white"
-            style={{ fontFamily: "'Pacifico', cursive", letterSpacing: "2px" }}
-          >
-            Admin Hub
-          </h3>
-        </div>
-      </div>
-
-      <div className="px-4 space-y-2 mt-4">
-
-      
-        <NavLink
-          to="/admin-dashboard"
-          end
-          className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
-          }
+    <Box
+      sx={{
+        height: "100vh",
+        width: 260,
+        position: "fixed",
+        left: 0,
+        top: 0,
+        backgroundColor: "background.paper",
+        borderRight: "1px solid #e5e7eb",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          height: 80,
+          display: "flex",
+          alignItems: "center",
+          px: 3,
+          borderBottom: "1px solid #e5e7eb",
+        }}
+      >
+        <Typography
+          variant="h6"
+          color="primary"
+          sx={{ fontWeight: 600, letterSpacing: "-0.3px" }}
         >
-          <FaTachometerAlt />
-          <span>Dashboard</span>
-        </NavLink>
+          Journal Hub
+        </Typography>
+      </Box>
 
+      <Divider />
 
+      {/* Navigation */}
+      <Box sx={{ flex: 1, px: 2, py: 3 }}>
+        <List sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
 
-
-        <NavLink
-          to="/admin-dashboard/users"
-          className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
-          }
-        >
-          <FaUsers />
-          <span>Manage Users</span>
-        </NavLink>
-
-
-        <NavLink
-                  to="/admin-dashboard/subscriptions"
-                  end
-                  className={({ isActive }) =>
-                    `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
-                  }
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.text}
+              to={item.path}
+              end={item.path === "/admin-dashboard"}
+              style={{ textDecoration: "none" }}
+            >
+              {({ isActive }) => (
+                <ListItemButton
+                  sx={{
+                    borderRadius: 2,
+                    px: 2,
+                    py: 1.3,
+                    transition: "all 0.2s ease",
+                    backgroundColor: isActive ? "primary.main" : "transparent",
+                    color: isActive ? "#ffffff" : "text.primary",
+                    "&:hover": {
+                      backgroundColor: isActive
+                        ? "primary.main"
+                        : "rgba(0,0,0,0.05)",
+                    },
+                  }}
                 >
-                  <FaTachometerAlt />
-                  <span>Manage-Subscription</span>
-                </NavLink>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 35,
+                      color: isActive ? "#ffffff" : "text.secondary",
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
 
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: 14,
+                      fontWeight: isActive ? 600 : 500,
+                    }}
+                  />
+                </ListItemButton>
+              )}
+            </NavLink>
+          ))}
 
-
-
-
-
-        <NavLink
-          to="/admin-dashboard/journals"
-          className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
-          }
-        >
-          <FaBook />
-          <span>Manage Journals</span>
-        </NavLink>
-
-        <NavLink
-          to="/admin-dashboard/payments"
-          className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
-          }
-        >
-          <FaCreditCard />
-          <span>Payments</span>
-        </NavLink>
-
-     
-        <NavLink
-          to="/admin-dashboard/reports"
-          className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
-          }
-        >
-          <FaChartBar />
-          <span>Reports</span>
-        </NavLink>
-
-     
-        <NavLink
-          to="/admin-dashboard/settings"
-          className={({ isActive }) =>
-            `${isActive ? "bg-blue-500" : ""} flex items-center space-x-4 px-4 py-2.5 rounded hover:bg-blue-700 transition-colors`
-          }
-        >
-          <FaCog />
-          <span>Settings</span>
-        </NavLink>
-
-      </div>
-    </div>
+        </List>
+      </Box>
+    </Box>
   );
 };
 

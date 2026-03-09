@@ -18,7 +18,6 @@ const MySubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ MOVE OUTSIDE useEffect
   const loadSubscriptions = async () => {
     try {
       const stored = localStorage.getItem("user");
