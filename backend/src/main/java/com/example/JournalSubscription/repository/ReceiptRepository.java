@@ -4,6 +4,7 @@ import com.example.JournalSubscription.entity.Receipt;
 import io.micrometer.observation.ObservationFilter;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
@@ -18,5 +19,6 @@ public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
     Optional<Receipt> findByPayment_SubscriptionId(Long subscriptionId);
 
 
-    Optional<Receipt> findByPayment_Subscription_Id(Long id);
+    Optional<Receipt> findTopByPayment_Subscription_IdOrderByGeneratedAtDesc(Long subscriptionId);
+
 }

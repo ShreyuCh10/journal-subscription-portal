@@ -38,9 +38,33 @@ public class SubscriptionService {
         return subscriptionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Subscription not found"));
     }
+    public List<SubscriptionResponse> findAll() {
 
-    public List<Subscription> findAll() {
-        return subscriptionRepository.findAll();
+        List<Subscription> subscriptions = subscriptionRepository.findAll();
+
+        return subscriptions.stream().map(sub -> {
+
+            String journalTitle = journalRepository
+                    .findById(sub.getJournalId())
+                    .map(j -> j.getTitle())
+                    .orElse("Unknown Journal");
+
+            Long receiptId = receiptRepository
+                    .findTopByPayment_Subscription_IdOrderByGeneratedAtDesc(sub.getId())
+                    .map(r -> r.getReceiptId())
+                    .orElse(null);
+
+            return new SubscriptionResponse(
+                    sub.getId(),
+                    journalTitle,
+                    sub.getStatus().name(),
+                    sub.getMonths(),
+                    sub.getStartDate(),
+                    sub.getEndDate(),
+                    receiptId
+            );
+
+        }).toList();
     }
 
     public List<SubscriptionResponse> findByUserId(Long userId) {
@@ -54,7 +78,7 @@ public class SubscriptionService {
                     .orElse("Unknown Journal");
 
             Long receiptId = receiptRepository
-                    .findByPayment_Subscription_Id(sub.getId())
+                    .findTopByPayment_Subscription_IdOrderByGeneratedAtDesc(sub.getId())
                     .map(r -> r.getReceiptId())
                     .orElse(null);
 
@@ -131,7 +155,14 @@ public class SubscriptionService {
 
         // 3️⃣ Calculate refund
         double monthlyAmount = payment.getAmount() / subscription.getMonths();
-        double refundAmount = monthlyAmount * remainingMonths;
+        double refundAmount = Math.round(monthlyAmount * remainingMonths * 100.0) / 100.0;
+
+
+        System.out.println("Remaining Months: " + remainingMonths);
+        System.out.println("Monthly Amount: " + monthlyAmount);
+        System.out.println("Refund Amount (rupees): " + refundAmount);
+        System.out.println("Refund Amount (paise): " + Math.round(refundAmount * 100));
+        System.out.println("Razorpay Payment ID: " + payment.getRazorpayPaymentId());
 
         try {
 

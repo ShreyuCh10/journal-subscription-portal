@@ -1,5 +1,5 @@
 package com.example.JournalSubscription.entity;
-
+import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

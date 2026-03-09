@@ -7,6 +7,7 @@ import com.example.JournalSubscription.repository.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ public class CheckoutService {
         this.journalRepository = journalRepository;
     }
 
+    @Transactional
     public CheckoutResponse processSuccessfulPayment(
             CheckoutRequest request,
             String razorpayPaymentId,
@@ -52,66 +54,78 @@ public class CheckoutService {
 
         Subscription subscription;
 
-        // 🔁 RENEWAL FLOW
-        if (request.getRenewalOfSubscriptionId() != null) {
+        // =====================================================
+        // 🔍 CHECK EXISTING SUBSCRIPTION
+        // =====================================================
 
-            Subscription oldSubscription = subscriptionRepository
-                    .findById(request.getRenewalOfSubscriptionId())
-                    .orElseThrow(() -> new RuntimeException("Old subscription not found"));
+        Subscription existingSub = subscriptionRepository.findByUserId(request.getUserId())
+                .stream()
+                .filter(sub -> sub.getJournalId().equals(request.getJournalId())
+                        && sub.getStatus() == Subscription.SubscriptionStatus.ACTIVE)
+                .findFirst()
+                .orElse(null);
 
-            // 🔐 Security check: ensure same user
-            if (!oldSubscription.getUserId().equals(request.getUserId())) {
-                throw new RuntimeException("Unauthorized renewal attempt");
-            }
+        if (existingSub != null) {
 
-            subscription = new Subscription();
-            subscription.setUserId(oldSubscription.getUserId());
-            subscription.setJournalId(oldSubscription.getJournalId());
-            subscription.setMonths(request.getMonths());
+            // =====================================================
+            // 🔁 EXTEND EXISTING SUBSCRIPTION
+            // =====================================================
 
-            // 🧠 Smart Renewal Date Logic
             LocalDate startDate;
 
-            if (LocalDate.now().isAfter(oldSubscription.getEndDate())) {
-                // expired → start from today
+            if (LocalDate.now().isAfter(existingSub.getEndDate())) {
                 startDate = LocalDate.now();
             } else {
-                // active → extend from end date
-                startDate = oldSubscription.getEndDate();
+                startDate = existingSub.getEndDate();
             }
 
-            subscription.setStartDate(startDate);
-            subscription.setEndDate(startDate.plusMonths(request.getMonths()));
+            existingSub.setEndDate(startDate.plusMonths(request.getMonths()));
+            existingSub.setMonths(existingSub.getMonths() + request.getMonths());
+
+            subscription = subscriptionRepository.save(existingSub);
 
         } else {
-            // 🆕 NEW SUBSCRIPTION FLOW
 
-            // Prevent duplicate active subscription
-            subscriptionRepository.findByUserId(request.getUserId())
-                    .stream()
-                    .filter(sub -> sub.getJournalId().equals(request.getJournalId())
-                            && sub.getStatus() == Subscription.SubscriptionStatus.ACTIVE
-                            && LocalDate.now().isBefore(sub.getEndDate()))
-                    .findFirst()
-                    .ifPresent(sub -> {
-                        throw new RuntimeException("Active subscription already exists.");
-                    });
+            // =====================================================
+            // 🆕 CREATE NEW SUBSCRIPTION
+            // =====================================================
 
             subscription = new Subscription();
+
             subscription.setUserId(request.getUserId());
             subscription.setJournalId(request.getJournalId());
             subscription.setMonths(request.getMonths());
 
             LocalDate startDate = LocalDate.now();
+
             subscription.setStartDate(startDate);
             subscription.setEndDate(startDate.plusMonths(request.getMonths()));
+
+            subscription.setStatus(Subscription.SubscriptionStatus.ACTIVE);
+
         }
 
-        subscription.setStatus(Subscription.SubscriptionStatus.ACTIVE);
+        // =====================================================
+        // 🏠 SAVE SHIPPING ADDRESS
+        // =====================================================
+
+        Address address = new Address();
+        address.setUserId(request.getUserId());   // ⭐ ADD THIS LINE
+        address.setFullName(request.getFullName());
+        address.setPhone(request.getMobile());
+        address.setStreet(request.getStreet());
+        address.setCity(request.getCity());
+        address.setState(request.getState());
+        address.setPincode(request.getPincode());
+
+        subscription.setShippingAddress(address);
 
         Subscription savedSub = subscriptionRepository.save(subscription);
 
-        // 3️⃣ Create Invoice
+        // =====================================================
+        // 🧾 CREATE INVOICE
+        // =====================================================
+
         Invoice invoice = new Invoice();
         invoice.setSubscriptionId(savedSub.getId());
         invoice.setAmount(calculatedAmount);
@@ -121,7 +135,10 @@ public class CheckoutService {
 
         Invoice savedInvoice = invoiceRepository.save(invoice);
 
-        // 4️⃣ Create Payment
+        // =====================================================
+        // 💳 CREATE PAYMENT
+        // =====================================================
+
         Payment payment = new Payment();
         payment.setSubscription(savedSub);
         payment.setInvoice(savedInvoice);
@@ -134,7 +151,10 @@ public class CheckoutService {
 
         Payment savedPayment = paymentRepository.save(payment);
 
-        // 5️⃣ Generate Receipt
+        // =====================================================
+        // 🧾 GENERATE RECEIPT
+        // =====================================================
+
         Receipt receipt = new Receipt();
         receipt.setPayment(savedPayment);
         receipt.setReceiptNumber("RCPT-" + System.currentTimeMillis());
@@ -147,4 +167,5 @@ public class CheckoutService {
                 savedReceipt.getReceiptId()
         );
     }
+
 }

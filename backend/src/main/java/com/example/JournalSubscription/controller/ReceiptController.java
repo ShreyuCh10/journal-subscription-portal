@@ -44,4 +44,20 @@ public class ReceiptController {
                 .header("Content-Disposition", "attachment; filename=receipt.pdf")
                 .body(pdf);
     }
+
+    @GetMapping("/download/payment/{paymentId}")
+    public ResponseEntity<byte[]> downloadByPaymentId(
+            @PathVariable Long paymentId) {
+
+        Receipt receipt = receiptRepository
+                .findByPayment_PaymentId(paymentId)
+                .orElseThrow(() -> new RuntimeException("Receipt not found"));
+
+        byte[] pdf = receiptService.generateReceiptPdf(receipt.getReceiptId());
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition",
+                        "attachment; filename=" + receipt.getReceiptNumber() + ".pdf")
+                .body(pdf);
+    }
 }

@@ -24,10 +24,9 @@ public class SubscriptionController {
     }
 
     @GetMapping
-    public List<Subscription> getAll() {
+    public List<SubscriptionResponse> getAllSubscriptions() {
         return subscriptionService.findAll();
     }
-
     @GetMapping("/user/{userId}")
     public List<SubscriptionResponse> getByUser(@PathVariable Long userId) {
         return subscriptionService.findByUserId(userId);

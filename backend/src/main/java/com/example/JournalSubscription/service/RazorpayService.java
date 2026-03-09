@@ -44,7 +44,9 @@ public class RazorpayService {
         RazorpayClient razorpay = new RazorpayClient(keyId, keySecret);
 
         JSONObject refundRequest = new JSONObject();
-        refundRequest.put("amount", refundAmount * 100); // convert to paise
+
+        int amountInPaise = (int) Math.round(refundAmount * 100);
+        refundRequest.put("amount", amountInPaise);
 
         razorpay.payments.refund(razorpayPaymentId, refundRequest);
     }

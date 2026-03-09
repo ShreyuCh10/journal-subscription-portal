@@ -2,7 +2,7 @@ package com.example.JournalSubscription.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-
+import lombok.*;
 @Entity
 @Table(name = "email_notifications")
 public class EmailNotification {

@@ -2,7 +2,8 @@ package com.example.JournalSubscription.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-
+import java.util.List;
+import lombok.*;
 @Entity
 @Table(name = "users")
 public class User {
@@ -22,6 +23,8 @@ public class User {
     private Boolean interested = false;
 
     private LocalDateTime createdAt;
+    private String fullName;
+
 
     @PrePersist
     public void onCreate() {
@@ -68,5 +71,13 @@ public class User {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    // ✅ NEW GETTER + SETTER
+    public String getFullName() {
+        return fullName;
+    }
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 }

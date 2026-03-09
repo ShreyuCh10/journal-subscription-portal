@@ -17,3 +17,7 @@ export const payInvoice = (invoiceId, method) => {
 export const getMyPayments = () => {
   return api.get(`/api/payments/my-payments`);
 };
+
+export const getAllPayments = () => {
+  return api.get("/api/payments");
+};

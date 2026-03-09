@@ -23,11 +23,9 @@ public class UserController {
     @GetMapping("/me")
     public User getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
 
-        String clerkUserId = jwt.getSubject();   // Clerk user ID
-        String email = jwt.getClaim("email");
-        System.out.println(jwt.getClaims());
+        String clerkUserId = jwt.getSubject();
 
-        return userService.syncUser(clerkUserId, email);
+        return userService.syncUser(clerkUserId);
     }
 
     @GetMapping("/interested")
@@ -39,10 +37,13 @@ public class UserController {
     public List<User> getNotSubscribedUsers() {
         return userService.findAllNotSubscribed();
     }
-
     @PostMapping
     public User createUser(@Valid @RequestBody CreateUserRequest request) {
-        return userService.createUser(request.getClerkUserId(), request.getEmail());
+        return userService.createUser(
+                request.getClerkUserId(),
+                request.getEmail(),
+                request.getFullName()   // ✅ ADD
+        );
     }
     @GetMapping
     public List<User> getAllUsers() {   // ✅ ADD THIS

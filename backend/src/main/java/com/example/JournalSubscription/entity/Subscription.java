@@ -1,7 +1,7 @@
 package com.example.JournalSubscription.entity;
 
 import jakarta.persistence.*;
-
+import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -38,6 +38,10 @@ public class Subscription {
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "shipping_address_id")
+    private Address shippingAddress;
+
 
     // ===== GETTERS & SETTERS =====
 
@@ -76,4 +80,11 @@ public class Subscription {
     public SubscriptionStatus getStatus() { return status; }
 
     public void setStatus(SubscriptionStatus status) { this.status = status; }
+    public Address getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(Address shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
 }

@@ -13,6 +13,7 @@ import AdminHome from "./pages/Dashboard/AdminDashboard/AdminHome";
 import ManageUsers from "./pages/Dashboard/AdminDashboard/ManageUsers";
 import ManageJournals from "./pages/Dashboard/AdminDashboard/ManageJournals";
 import ManageSubscription from "./pages/Dashboard/AdminDashboard/ManageSubscription";
+import Managepayment from "./Pages/dashboard/AdminDashboard/Managepayment";
 
 import UserDashboard from "./pages/Dashboard/UserDashboard/Dashboard/Dashboard";
 import UserSummary from "./pages/Dashboard/UserDashboard/Dashboard/UserSummary";
@@ -68,6 +69,7 @@ const router = createBrowserRouter([
     { path: 'users', element: <ManageUsers /> },
     { path: 'journals', element: <ManageJournals /> },
     { path: 'subscriptions', element: <ManageSubscription /> },
+    { path: 'payments',element:<Managepayment />},
   ],
 },
 

@@ -49,6 +49,7 @@ public class CheckoutController {
 
         try {
 
+            // 1️⃣ Verify Razorpay signature
             boolean isValid = razorpayService.verifySignature(
                     request.getRazorpay_order_id(),
                     request.getRazorpay_payment_id(),
@@ -56,22 +57,22 @@ public class CheckoutController {
             );
 
             if (!isValid) {
-                return ResponseEntity.badRequest().body("Invalid payment signature");
+                return ResponseEntity.badRequest()
+                        .body("Invalid payment signature");
             }
 
-            // ✅ Save payment & create subscription AFTER successful verification
-            CheckoutResponse checkoutResponse =
+            // 2️⃣ Process successful payment
+            CheckoutResponse response =
                     checkoutService.processSuccessfulPayment(
                             request,
                             request.getRazorpay_payment_id(),
                             request.getRazorpay_order_id()
                     );
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "SUCCESS");
-            response.put("receiptId", checkoutResponse.getReceiptId());
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of(
+                    "status", "SUCCESS",
+                    "receiptId", response.getReceiptId()
+            ));
 
         } catch (Exception e) {
             e.printStackTrace();

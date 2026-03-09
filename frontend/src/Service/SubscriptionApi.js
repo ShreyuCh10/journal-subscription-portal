@@ -1,8 +1,9 @@
 import api from "./api";
 
 
-export const getAllSubscriptions = () => {
-  return api.get(api/subscriptions);
+export const getAllSubscriptions = async () => {
+  const response = await api.get("/api/subscriptions");
+  return response;
 };
 
 export const getSubscriptionById = (id) => {
