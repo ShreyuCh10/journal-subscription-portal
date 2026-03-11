@@ -56,9 +56,7 @@ public class ReceiptService {
             Font normalFont = new Font(Font.FontFamily.HELVETICA, 12);
             Font boldFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
 
-            // ==========================
-            // HEADER
-            // ==========================
+
             Paragraph title = new Paragraph("JOURNAL HUB", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
@@ -71,9 +69,7 @@ public class ReceiptService {
             document.add(new LineSeparator());
             document.add(new Paragraph(" "));
 
-            // ==========================
-            // RECEIPT DETAILS TABLE
-            // ==========================
+
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
             table.setSpacingBefore(10f);
@@ -94,9 +90,7 @@ public class ReceiptService {
             document.add(new LineSeparator());
             document.add(new Paragraph(" "));
 
-            // ==========================
-            // FOOTER
-            // ==========================
+
             Paragraph thanks = new Paragraph(
                     "Thank you for subscribing to Journal Hub.\n" +
                             "For support, contact support@journalhub.com",

@@ -13,6 +13,7 @@ const BrowseJournals = () => {
     const loadJournals = async () => {
       try {
         const res = await getAllJournals();
+          console.log(res.data);
         setJournals(res.data);
       } catch (err) {
         console.error(err);

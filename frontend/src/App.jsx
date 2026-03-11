@@ -13,7 +13,10 @@ import AdminHome from "./pages/Dashboard/AdminDashboard/AdminHome";
 import ManageUsers from "./pages/Dashboard/AdminDashboard/ManageUsers";
 import ManageJournals from "./pages/Dashboard/AdminDashboard/ManageJournals";
 import ManageSubscription from "./pages/Dashboard/AdminDashboard/ManageSubscription";
-import Managepayment from "./Pages/dashboard/AdminDashboard/Managepayment";
+import ManagePayments from "./pages/Dashboard/AdminDashboard/ManagePayments";
+import ManageDispatch from "./pages/Dashboard/AdminDashboard/ManageDispatch";
+
+
 
 import UserDashboard from "./pages/Dashboard/UserDashboard/Dashboard/Dashboard";
 import UserSummary from "./pages/Dashboard/UserDashboard/Dashboard/UserSummary";
@@ -22,17 +25,20 @@ import MySubscriptions from "./pages/Dashboard/UserDashboard/MySubscriptions";
 import Payments from "./pages/Dashboard/UserDashboard/Payments";
 import Profile from "./pages/Dashboard/UserDashboard/Profile";
 import Settings from "./pages/Dashboard/UserDashboard/Settings";
-import Support from "./pages/Dashboard/UserDashboard/Support";
+
 import JournalDetail from "./pages/Dashboard/UserDashboard/JournalDetail";
 import Cart from "./pages/Dashboard/UserDashboard/Cart";
 import Checkout from "./pages/Dashboard/UserDashboard/Checkout"
 import Receipt from "./pages/Dashboard/UserDashboard/Receipt"
+import TrackShipment from "./pages/Dashboard/UserDashboard/TrackShipment";
 
 
 
 import ProtectedAdminRoute from "./Component/ProtectedAdminRoute";
 import ProtectedUserRoute from "./Component/ProtectedUserRoute";
 import RoleRedirect from "./Component/RoleRedirect";
+
+
 
 
 const router = createBrowserRouter([
@@ -69,7 +75,9 @@ const router = createBrowserRouter([
     { path: 'users', element: <ManageUsers /> },
     { path: 'journals', element: <ManageJournals /> },
     { path: 'subscriptions', element: <ManageSubscription /> },
-    { path: 'payments',element:<Managepayment />},
+    { path: 'payments',element:<ManagePayments />},
+    { path: "dispatch", element: <ManageDispatch /> }
+
   ],
 },
 
@@ -88,10 +96,11 @@ const router = createBrowserRouter([
       { path: 'payments', element: <Payments /> },
       { path: 'profile', element: <Profile /> },
       { path: 'settings', element: <Settings /> },
-      { path: 'support', element: <Support /> },
+
       {path: "journals/:id",element: <JournalDetail />},
       {path:"checkout",element:<Checkout/>},
       {path:"receipt/:id", element:<Receipt />} ,
+      { path: "shipments", element: <TrackShipment /> },
 
     ],
   },

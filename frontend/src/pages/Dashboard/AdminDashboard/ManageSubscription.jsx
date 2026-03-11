@@ -13,11 +13,12 @@ import {
   Chip,
   TextField,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Button
 } from "@mui/material";
 
 import { getAllSubscriptions } from "../../../Service/SubscriptionApi";
-
+import { createDispatch } from "../../../Service/DispatchApi";
 const ManageSubscription = () => {
 
   const [subscriptions, setSubscriptions] = useState([]);
@@ -29,6 +30,25 @@ const ManageSubscription = () => {
   useEffect(() => {
     fetchSubscriptions();
   }, []);
+
+
+const handleCreateDispatch = async (subscriptionId) => {
+
+  try {
+
+    await createDispatch(subscriptionId);
+
+    alert("Dispatch created successfully");
+
+    fetchSubscriptions(); // refresh table
+
+  } catch (err) {
+
+    console.error("Dispatch creation failed", err);
+
+  }
+
+};
 
   const fetchSubscriptions = async () => {
     try {
@@ -197,6 +217,7 @@ const ManageSubscription = () => {
                 <TableCell>Start Date</TableCell>
                 <TableCell>End Date</TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell align="center">Dispatch</TableCell>
               </TableRow>
 
             </TableHead>
@@ -231,6 +252,27 @@ const ManageSubscription = () => {
 
                   </TableCell>
 
+
+                     <TableCell align="center">
+
+                       {sub.status === "ACTIVE" ? (
+
+                         <Button
+                           variant="contained"
+                           size="small"
+                           onClick={() => handleCreateDispatch(sub.id)}
+                         >
+                           Create Dispatch
+                         </Button>
+
+                       ) : (
+
+                         "—"
+
+                       )}
+
+                     </TableCell>
+
                 </TableRow>
 
               ))}
@@ -238,7 +280,7 @@ const ManageSubscription = () => {
               {filtered.length === 0 && (
 
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={7} align="center">
                     No subscriptions found
                   </TableCell>
                 </TableRow>

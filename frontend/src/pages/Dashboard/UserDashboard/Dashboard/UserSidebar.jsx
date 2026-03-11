@@ -7,6 +7,10 @@ import {
   FaUser,
   FaCog,
   FaLifeRing,
+  FaShoppingCart ,
+  FaSearch,
+  FaTruck,
+
 } from "react-icons/fa";
 
 const UserSidebar = () => {
@@ -45,12 +49,12 @@ const UserSidebar = () => {
         </NavLink>
 
         <NavLink to="/dashboard/browse" className={linkClasses}>
-          <FaBookOpen />
+          <FaSearch />
           <span>Browse Journals</span>
         </NavLink>
 
         <NavLink to="/dashboard/cart" className={linkClasses}>
-          <FaBookOpen />
+          <FaShoppingCart />
           <span>My Cart</span>
         </NavLink>
 
@@ -63,6 +67,10 @@ const UserSidebar = () => {
           <FaCreditCard />
           <span>Payments</span>
         </NavLink>
+        <NavLink to="/dashboard/shipments" className={linkClasses}>
+                  <FaTruck />
+                  <span>My Shipment</span>
+         </NavLink>
 
         <NavLink to="/dashboard/profile" className={linkClasses}>
           <FaUser />
@@ -74,10 +82,6 @@ const UserSidebar = () => {
           <span>Settings</span>
         </NavLink>
 
-        <NavLink to="/dashboard/support" className={linkClasses}>
-          <FaLifeRing />
-          <span>Support</span>
-        </NavLink>
 
       </div>
     </div>

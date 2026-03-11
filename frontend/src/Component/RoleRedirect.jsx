@@ -16,16 +16,6 @@ if (role === "admin") {
 
 return <Navigate to="/dashboard" replace />;
 
-
-
-
-
-
-
-
-
-
-
   if (role === "admin") {
     return <Navigate to="/admin-dashboard" replace />;
   }

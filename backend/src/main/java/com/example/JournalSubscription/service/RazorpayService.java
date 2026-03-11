@@ -24,7 +24,7 @@ public class RazorpayService {
         RazorpayClient razorpay = new RazorpayClient(keyId, keySecret);
 
         JSONObject orderRequest = new JSONObject();
-        orderRequest.put("amount", amount * 100); // Razorpay uses paise
+        orderRequest.put("amount", amount * 100);
         orderRequest.put("currency", "INR");
         orderRequest.put("receipt", "order_" + System.currentTimeMillis());
 

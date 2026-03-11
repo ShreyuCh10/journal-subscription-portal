@@ -10,6 +10,7 @@ const JournalCard = ({ journal }) => {
   };
 
   return (
+
     <div
       onClick={handleClick}
       className="group cursor-pointer bg-white rounded-2xl border border-gray-100
@@ -19,10 +20,14 @@ const JournalCard = ({ journal }) => {
       {/* Image */}
       <div className="relative h-44 overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=400"
-          alt={journal.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+            src={
+              journal.imageUrl
+                ? `http://localhost:8080${journal.imageUrl}`
+                : "https://via.placeholder.com/400x250?text=Journal"
+            }
+            alt={journal.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
 
         <span className="absolute top-3 left-3 bg-white text-xs font-medium
                          text-gray-700 px-3 py-1 rounded-full border border-gray-200">
