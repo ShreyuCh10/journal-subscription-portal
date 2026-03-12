@@ -4,287 +4,231 @@ import {
   Typography,
   Card,
   CardContent,
+  Grid,
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
   Chip,
+  Button,
   TextField,
   MenuItem,
-  Button,
-  Pagination
+  CircularProgress,
 } from "@mui/material";
-
-import {
-  getAllDispatches,
-  createDispatch,
-  updateDispatchStatus
-} from "../../../Service/DispatchApi";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import { getAllDispatches, getDispatchCounts, updateDispatchStatus } from "../../../Service/DispatchApi";
 
 const ManageDispatch = () => {
-
   const [dispatches, setDispatches] = useState([]);
   const [filtered, setFiltered] = useState([]);
-
-  const [search, setSearch] = useState("");
+  const [counts, setCounts] = useState({ pending: 0, shipped: 0, delivered: 0 });
+  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const [page, setPage] = useState(1);
-
-  const rowsPerPage = 8;
-
   useEffect(() => {
-    fetchDispatch();
+    fetchData();
   }, []);
 
-  const fetchDispatch = async () => {
-    const res = await getAllDispatches();
-    setDispatches(res.data);
-    setFiltered(res.data);
+  const fetchData = async () => {
+    try {
+      const [dispRes, countRes] = await Promise.all([
+        getAllDispatches(),
+        getDispatchCounts(),
+      ]);
+      setDispatches(dispRes.data);
+      setFiltered(dispRes.data);
+      setCounts(countRes.data);
+    } catch (err) {
+      console.error("Failed to load dispatches", err);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  // SEARCH + FILTER
 
   useEffect(() => {
+    if (statusFilter === "all") {
+      setFiltered(dispatches);
+    } else {
+      setFiltered(dispatches.filter((d) => d.status === statusFilter));
+    }
+  }, [statusFilter, dispatches]);
 
-    let result = dispatches;
-
-    if (search) {
-      result = result.filter(d =>
-        d.trackingNumber?.toLowerCase().includes(search.toLowerCase())
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      const res = await updateDispatchStatus(id, newStatus);
+      setDispatches((prev) =>
+        prev.map((d) => (d.id === id ? res.data : d))
       );
+      // Refresh counts
+      const countRes = await getDispatchCounts();
+      setCounts(countRes.data);
+    } catch (err) {
+      console.error("Failed to update status", err);
+      alert("Failed to update dispatch status");
     }
-
-    if (statusFilter !== "all") {
-      result = result.filter(d => d.status === statusFilter);
-    }
-
-    setFiltered(result);
-
-  }, [search, statusFilter, dispatches]);
-
-  // CREATE DISPATCH
-
-  const handleCreateDispatch = async (subscriptionId) => {
-
-    await createDispatch(subscriptionId);
-
-    alert("Dispatch created successfully");
-
-    fetchDispatch();
   };
-
-  // UPDATE STATUS
-
-  const updateStatus = async (id, status) => {
-    await updateDispatchStatus(id, status);
-    fetchDispatch();
-  };
-
-  // STATUS COLORS
 
   const getStatusColor = (status) => {
-
     switch (status) {
-
-      case "PENDING":
-        return "default";
-
-      case "PACKED":
-        return "warning";
-
-      case "SHIPPED":
-        return "info";
-
-      case "IN_TRANSIT":
-        return "secondary";
-
-      case "DELIVERED":
-        return "success";
-
-      default:
-        return "default";
+      case "PENDING": return "warning";
+      case "SHIPPED": return "info";
+      case "DELIVERED": return "success";
+      default: return "default";
     }
   };
 
-  // PAGINATION
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
-  const startIndex = (page - 1) * rowsPerPage;
-
-  const currentRows =
-    filtered.slice(startIndex, startIndex + rowsPerPage);
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" mt={5}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-
-    <Box sx={{ px: 4, py: 4 }}>
-
-      <Typography variant="h4" mb={3}>
-        Dispatch Management
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Typography variant="h4" fontWeight={700}>
+        🚚 Dispatch Management
       </Typography>
 
-      {/* Filters */}
+      {/* Summary Cards */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <HourglassEmptyIcon sx={{ fontSize: 40, color: "#ed6c02" }} />
+              <Box>
+                <Typography color="text.secondary" variant="body2">Pending</Typography>
+                <Typography variant="h5" fontWeight={700}>{counts.pending}</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <LocalShippingIcon sx={{ fontSize: 40, color: "#0288d1" }} />
+              <Box>
+                <Typography color="text.secondary" variant="body2">Shipped</Typography>
+                <Typography variant="h5" fontWeight={700}>{counts.shipped}</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <CheckCircleIcon sx={{ fontSize: 40, color: "#2e7d32" }} />
+              <Box>
+                <Typography color="text.secondary" variant="body2">Delivered</Typography>
+                <Typography variant="h5" fontWeight={700}>{counts.delivered}</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
-      <Box display="flex" gap={2} mb={3}>
-
-        <TextField
-          label="Search Tracking"
-          size="small"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
+      {/* Filter */}
+      <Box>
         <TextField
           select
-          label="Status"
+          label="Filter by Status"
           size="small"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
+          sx={{ width: 180 }}
         >
-
           <MenuItem value="all">All</MenuItem>
           <MenuItem value="PENDING">Pending</MenuItem>
-          <MenuItem value="PACKED">Packed</MenuItem>
           <MenuItem value="SHIPPED">Shipped</MenuItem>
           <MenuItem value="DELIVERED">Delivered</MenuItem>
-
         </TextField>
-
       </Box>
 
-      <Card>
-
+      {/* Table */}
+      <Card sx={{ borderRadius: 3 }}>
         <CardContent>
-
           <Table>
-
             <TableHead>
-
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Subscription</TableCell>
-                <TableCell>Courier</TableCell>
-                <TableCell>Tracking</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="center">Actions</TableCell>
+              <TableRow sx={{ backgroundColor: "#f5f7fb" }}>
+                <TableCell><b>ID</b></TableCell>
+                <TableCell><b>User</b></TableCell>
+                <TableCell><b>Journal</b></TableCell>
+                <TableCell><b>Status</b></TableCell>
+                <TableCell><b>Dispatch Date</b></TableCell>
+                <TableCell><b>Delivery Date</b></TableCell>
+                <TableCell align="center"><b>Actions</b></TableCell>
               </TableRow>
-
             </TableHead>
-
             <TableBody>
-
-              {currentRows.map((d) => (
-
+              {filtered.map((d) => (
                 <TableRow key={d.id} hover>
-
                   <TableCell>{d.id}</TableCell>
-
                   <TableCell>
-                    {d.subscriptionId}
+                    <Typography variant="body2" fontWeight={600}>{d.userName || "-"}</Typography>
+                    <Typography variant="caption" color="text.secondary">{d.userEmail || ""}</Typography>
                   </TableCell>
-
+                  <TableCell>{d.journalTitle || "-"}</TableCell>
                   <TableCell>
-                    {d.courier || "N/A"}
+                    <Chip label={d.status} color={getStatusColor(d.status)} size="small" />
                   </TableCell>
-
-                  <TableCell>
-
-                    {d.trackingNumber ?
-
-                      <a
-                        href={`https://www.delhivery.com/track/package/${d.trackingNumber}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {d.trackingNumber}
-                      </a>
-
-                      :
-
-                      "Not Generated"
-
-                    }
-
-                  </TableCell>
-
-                  <TableCell>
-
-                    <Chip
-                      label={d.status}
-                      color={getStatusColor(d.status)}
-                      size="small"
-                    />
-
-                  </TableCell>
-
+                  <TableCell>{formatDate(d.dispatchDate)}</TableCell>
+                  <TableCell>{formatDate(d.deliveryDate)}</TableCell>
                   <TableCell align="center">
-
                     {d.status === "PENDING" && (
-
                       <Button
                         size="small"
-                        onClick={() =>
-                          updateStatus(d.id, "PACKED")
-                        }
-                      >
-                        Pack
-                      </Button>
-
-                    )}
-
-                    {d.status === "PACKED" && (
-
-                      <Button
-                        size="small"
-                        onClick={() =>
-                          updateStatus(d.id, "SHIPPED")
-                        }
+                        variant="contained"
+                        color="info"
+                        onClick={() => handleStatusUpdate(d.id, "SHIPPED")}
                       >
                         Ship
                       </Button>
-
                     )}
-
                     {d.status === "SHIPPED" && (
-
                       <Button
                         size="small"
+                        variant="contained"
                         color="success"
-                        onClick={() =>
-                          updateStatus(d.id, "DELIVERED")
-                        }
+                        onClick={() => handleStatusUpdate(d.id, "DELIVERED")}
                       >
                         Deliver
                       </Button>
-
                     )}
-
+                    {d.status === "DELIVERED" && (
+                      <Typography variant="caption" color="success.main" fontWeight={600}>
+                        ✓ Done
+                      </Typography>
+                    )}
                   </TableCell>
-
                 </TableRow>
-
               ))}
 
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                    <Typography color="text.secondary">
+                      No dispatches found
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
-
           </Table>
-
         </CardContent>
-
       </Card>
-
-      {/* Pagination */}
-
-      <Box mt={3} display="flex" justifyContent="center">
-
-        <Pagination
-          count={Math.ceil(filtered.length / rowsPerPage)}
-          page={page}
-          onChange={(e, value) => setPage(value)}
-        />
-
-      </Box>
-
     </Box>
   );
 };

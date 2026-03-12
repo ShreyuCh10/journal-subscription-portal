@@ -4,12 +4,14 @@ import {
   createRazorpayOrder,
   verifyRazorpayPayment,
 } from "../../../Service/CheckoutApi";
+import { getCurrentUser } from "../../../Service/UserApi";
 
 const Checkout = () => {
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("Card");
+  const [backendUser, setBackendUser] = useState(null);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -24,6 +26,11 @@ const Checkout = () => {
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     setCartItems(cart);
+
+    // Fetch the logged-in user from backend
+    getCurrentUser().then(res => {
+      setBackendUser(res.data);
+    }).catch(err => console.error("Failed to load user:", err));
   }, []);
 
   const totalPrice = cartItems.reduce(
@@ -46,15 +53,13 @@ const Checkout = () => {
     formData.city.trim() !== "" &&
     formData.state.trim() !== "" &&
     formData.pincode.trim() !== "" &&
-    cartItems.length > 0;
+    cartItems.length > 0 &&
+    backendUser !== null;
 
   const handlePayment = async () => {
     if (!isFormValid) return;
 
     try {
-      const stored = localStorage.getItem("user");
-      const backendUser = JSON.parse(stored);
-
       // 1️⃣ Create Razorpay order
       const orderResponse = await createRazorpayOrder({
         amount: totalPrice,

@@ -1,57 +1,49 @@
 package com.example.JournalSubscription.controller;
 
+import com.example.JournalSubscription.dto.DispatchDTO;
 import com.example.JournalSubscription.entity.Dispatch;
-import com.example.JournalSubscription.entity.DispatchStatus;
-import com.example.JournalSubscription.entity.User;
-import com.example.JournalSubscription.repository.UserRepository;
 import com.example.JournalSubscription.service.DispatchService;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/dispatch")
+@RequestMapping("/api/dispatches")
 public class DispatchController {
 
     private final DispatchService dispatchService;
-    private final UserRepository UserRepository;
 
-    public DispatchController(DispatchService dispatchService, UserRepository userRepository) {
+    public DispatchController(DispatchService dispatchService) {
         this.dispatchService = dispatchService;
-        UserRepository = userRepository;
     }
 
-    // CREATE DISPATCH
-    @PostMapping("/{subscriptionId}")
-    public Dispatch createDispatch(@PathVariable Long subscriptionId) {
-        return dispatchService.createDispatch(subscriptionId);
-    }
-
-    // GET ALL
     @GetMapping
-    public List<Dispatch> getAllDispatch() {
-        return dispatchService.getAllDispatch();
-    }
-    // UPDATE STATUS
-    @PutMapping("/{dispatchId}")
-    public Dispatch updateDispatchStatus(
-            @PathVariable Long dispatchId,
-            @RequestParam DispatchStatus status
-    ) {
-        return dispatchService.updateStatus(dispatchId, status);
+    public List<DispatchDTO> getAll() {
+        return dispatchService.getAllDispatches();
     }
 
-    @GetMapping("/my-shipments")
-    public List<Dispatch> getUserShipments(@AuthenticationPrincipal Jwt jwt){
+    @GetMapping("/counts")
+    public Map<String, Long> getCounts() {
+        Map<String, Long> counts = new HashMap<>();
+        counts.put("pending", dispatchService.countByStatus(Dispatch.DispatchStatus.PENDING));
+        counts.put("shipped", dispatchService.countByStatus(Dispatch.DispatchStatus.SHIPPED));
+        counts.put("delivered", dispatchService.countByStatus(Dispatch.DispatchStatus.DELIVERED));
+        return counts;
+    }
 
-        String clerkUserId = jwt.getSubject();
+    @PutMapping("/{id}/status")
+    public DispatchDTO updateStatus(@PathVariable Long id, @RequestParam String status) {
+        return dispatchService.updateStatus(id, status);
+    }
 
-        User user = UserRepository.findByClerkUserId(clerkUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return dispatchService.getUserDispatches(user.getId());
+    @PostMapping
+    public DispatchDTO create(@RequestBody Map<String, Long> body) {
+        return dispatchService.createDispatch(
+                body.get("subscriptionId"),
+                body.get("userId"),
+                body.get("journalId")
+        );
     }
 }

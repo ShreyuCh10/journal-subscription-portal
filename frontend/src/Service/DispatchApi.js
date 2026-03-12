@@ -1,18 +1,10 @@
 import api from "./api";
 
-export const getAllDispatches = () => {
-  return api.get("/api/dispatch");
-};
+export const getAllDispatches = () => api.get("/api/dispatches");
 
-export const updateDispatchStatus = (id, status) => {
-  return api.put(`/api/dispatch/${id}?status=${status}`);
-};
+export const getDispatchCounts = () => api.get("/api/dispatches/counts");
 
+export const updateDispatchStatus = (id, status) =>
+  api.put(`/api/dispatches/${id}/status?status=${status}`);
 
-export const createDispatch = (subscriptionId) => {
-  return api.post(`/api/dispatch/${subscriptionId}`);
-};
-
-export const getUserShipments = () => {
-  return api.get("/api/dispatch/my-shipments");
-};
+export const createDispatch = (data) => api.post("/api/dispatches", data);

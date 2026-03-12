@@ -8,6 +8,7 @@ import {
   createRazorpayOrder,
   verifyRazorpayPayment,
 } from "../../../Service/CheckoutApi";
+import { getCurrentUser } from "../../../Service/UserApi";
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -18,23 +19,25 @@ const MySubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadSubscriptions = async () => {
-    try {
-      const stored = localStorage.getItem("user");
-      const user = JSON.parse(stored);
-
-      const response = await fetchUserSubscriptions(user.id);
-      setSubscriptions(response.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const loadSubscriptions = async () => {
+      try {
+        const userRes = await getCurrentUser();
+        const user = userRes.data;
+        if (!user || !user.id) return;
+
+        const response = await fetchUserSubscriptions(user.id);
+        setSubscriptions(response.data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadSubscriptions();
   }, []);
+
 
   const handleDownload = async (receiptId) => {
     try {
