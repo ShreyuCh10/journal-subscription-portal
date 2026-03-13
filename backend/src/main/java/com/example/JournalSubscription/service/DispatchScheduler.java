@@ -37,8 +37,11 @@ public class DispatchScheduler {
             if (sub.getStatus().name().equals("ACTIVE")) {
 
                 if (today.isBefore(sub.getEndDate()) || today.equals(sub.getEndDate())) {
-
-                    dispatchService.createDispatch(sub.getId());
+                    dispatchService.createDispatch(
+                            sub.getId(),
+                            sub.getUserId(),
+                            sub.getJournalId()
+                    );
 
                 }
 

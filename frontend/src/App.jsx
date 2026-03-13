@@ -1,7 +1,9 @@
 import './App.css';
 import { useAuth } from "@clerk/clerk-react";
 import { setupInterceptors } from "./Service/api";
+import { useEffect } from "react"
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
 import Login from './pages/Login';
 import Register from './pages//Register';
 import VerifyEmail from './pages/VerifyEmail';
@@ -15,6 +17,8 @@ import ManageJournals from "./pages/Dashboard/AdminDashboard/ManageJournals";
 import ManageSubscription from "./pages/Dashboard/AdminDashboard/ManageSubscription";
 import ManagePayments from "./pages/Dashboard/AdminDashboard/ManagePayments";
 import ManageDispatch from "./pages/Dashboard/AdminDashboard/ManageDispatch";
+import AdminReports from "./pages/Dashboard/AdminDashboard/AdminReports"
+import AdminSettings from "./pages/Dashboard/AdminDashboard/AdminSettings"
 
 
 
@@ -76,7 +80,9 @@ const router = createBrowserRouter([
     { path: 'journals', element: <ManageJournals /> },
     { path: 'subscriptions', element: <ManageSubscription /> },
     { path: 'payments',element:<ManagePayments />},
-    { path: "dispatch", element: <ManageDispatch /> }
+    { path: "dispatch", element: <ManageDispatch /> },
+    { path: "reports", element: <AdminReports /> },
+    { path: "settings", element: <AdminSettings /> }
 
   ],
 },
@@ -108,7 +114,10 @@ const router = createBrowserRouter([
 function App() {
      const { getToken } = useAuth();
 
-      setupInterceptors(getToken);
+       useEffect(() => {
+          setupInterceptors(getToken);
+        }, []);
+
   return <RouterProvider router={router} />;
 }
 

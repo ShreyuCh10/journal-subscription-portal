@@ -18,38 +18,34 @@ public class UserService {
         this.clerkService = clerkService;
     }
 
-    public User syncUser(String clerkUserId) {
+    public User syncUser(String clerkUserId, String email, String name) {
 
         return userRepository.findByClerkUserId(clerkUserId)
+                .map(user -> {
+
+                    if (user.getEmail() == null) {
+                        user.setEmail(email);
+                    }
+
+                    if (user.getFullName() == null) {
+                        user.setFullName(name);
+                    }
+
+                    return userRepository.save(user);
+                })
                 .orElseGet(() -> {
 
-                    Map userData = clerkService.getUser(clerkUserId);
+                    User user = new User();
 
-                    String firstName = (String) userData.get("first_name");
-                    String lastName = (String) userData.get("last_name");
+                    user.setClerkUserId(clerkUserId);
+                    user.setEmail(email);
+                    user.setFullName(name);
+                    user.setSubscribed(false);
+                    user.setInterested(false);
 
-                    String fullName = (firstName != null ? firstName : "") +
-                            " " +
-                            (lastName != null ? lastName : "");
-
-                    List<Map> emails =
-                            (List<Map>) userData.get("email_addresses");
-
-                    String email =
-                            (String) emails.get(0).get("email_address");
-
-                    User newUser = new User();
-
-                    newUser.setClerkUserId(clerkUserId);
-                    newUser.setEmail(email);
-                    newUser.setFullName(fullName);
-                    newUser.setSubscribed(false);
-                    newUser.setInterested(false);
-
-                    return userRepository.save(newUser);
+                    return userRepository.save(user);
                 });
     }
-
     public User getByClerkId(String clerkUserId) {
         return userRepository.findByClerkUserId(clerkUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

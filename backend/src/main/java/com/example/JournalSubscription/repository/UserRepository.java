@@ -16,6 +16,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByInterestedTrue();
 
+    long countBySubscribed(boolean subscribed);
+
+    long countByInterested(boolean interested);
+
 }
 
 

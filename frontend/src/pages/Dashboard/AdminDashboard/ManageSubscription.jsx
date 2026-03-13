@@ -32,24 +32,30 @@ const ManageSubscription = () => {
   }, []);
 
 
-const handleCreateDispatch = async (subscriptionId) => {
+const handleCreateDispatch = async (sub) => {
+
+  if (!sub.userId || !sub.journalId) {
+    console.error("Missing IDs:", sub);
+    alert("Subscription data incomplete. Refresh page.");
+    return;
+  }
 
   try {
 
-    await createDispatch(subscriptionId);
+    await createDispatch({
+      subscriptionId: sub.id,
+      userId: sub.userId,
+      journalId: sub.journalId
+    });
 
     alert("Dispatch created successfully");
-
-    fetchSubscriptions(); // refresh table
+    fetchSubscriptions();
 
   } catch (err) {
-
     console.error("Dispatch creation failed", err);
-
   }
 
 };
-
   const fetchSubscriptions = async () => {
     try {
 
@@ -260,7 +266,7 @@ const handleCreateDispatch = async (subscriptionId) => {
                          <Button
                            variant="contained"
                            size="small"
-                           onClick={() => handleCreateDispatch(sub.id)}
+                           onClick={() => handleCreateDispatch(sub)}
                          >
                            Create Dispatch
                          </Button>

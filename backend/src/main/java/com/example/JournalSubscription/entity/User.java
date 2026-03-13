@@ -2,8 +2,7 @@ package com.example.JournalSubscription.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
-import lombok.*;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -13,9 +12,9 @@ public class User {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String clerkUserId;   // Main identity from Clerk
+    private String clerkUserId;
 
-    @Column(nullable = true, unique = true)
+    @Column(unique = true)
     private String email;
 
     private Boolean subscribed = false;
@@ -23,15 +22,17 @@ public class User {
     private Boolean interested = false;
 
     private LocalDateTime createdAt;
+
     private String fullName;
 
+    private String billingAddress;
+
+    private String profilePicture;
 
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
-
-    // ===== Getters & Setters =====
 
     public Long getId() {
         return id;
@@ -73,11 +74,27 @@ public class User {
         return createdAt;
     }
 
-    // ✅ NEW GETTER + SETTER
     public String getFullName() {
         return fullName;
     }
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getBillingAddress() {
+        return billingAddress;
+    }
+
+    public void setBillingAddress(String billingAddress) {
+        this.billingAddress = billingAddress;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }

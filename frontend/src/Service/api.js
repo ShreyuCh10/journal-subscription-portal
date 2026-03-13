@@ -11,7 +11,9 @@ const api = axios.create({
 
 export const setupInterceptors = (getToken) => {
   api.interceptors.request.use(async (config) => {
-    const token = await getToken();
+
+    // 🔑 request JWT template
+    const token = await getToken({ template: "journalhub" });
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

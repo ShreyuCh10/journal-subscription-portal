@@ -12,7 +12,7 @@ public class ClerkService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private final String CLERK_SECRET_KEY = "pk_test_bmF0dXJhbC1nZWNrby05My5jbGVyay5hY2NvdW50cy5kZXYk"; // 🔑 put your clerk secret key
+    private final String CLERK_SECRET_KEY = "sk_test_mTfXz1GrgE0zzAh4EHhWQkFVqIMTM0tW6et2aJGYke"; // 🔑 put your clerk secret key
 
     public Map getUser(String clerkUserId) {
 

@@ -1,34 +1,34 @@
 package com.example.JournalSubscription.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
-@Table(name = "dispatches")
+@Table(name = "dispatch")
 public class Dispatch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "subscription_id", nullable = false)
-    private Long subscriptionId;
+    @ManyToOne
+    @JoinColumn(name = "subscription_id")
+    private Subscription subscription;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "journal_id")
+    private Journal journal;
 
-    @Column(name = "journal_id", nullable = false)
-    private Long journalId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DispatchStatus status = DispatchStatus.PENDING;
-
-    public enum DispatchStatus {
-        PENDING,
-        SHIPPED,
-        DELIVERED
-    }
 
     private LocalDateTime dispatchDate;
     private LocalDateTime deliveryDate;
@@ -42,29 +42,32 @@ public class Dispatch {
 
     // ===== GETTERS & SETTERS =====
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public void setSubscription(Subscription subscription) {
+        this.subscription = subscription;
+    }
 
-    public Long getSubscriptionId() { return subscriptionId; }
-    public void setSubscriptionId(Long subscriptionId) { this.subscriptionId = subscriptionId; }
+    public void setJournal(Journal journal) {
+        this.journal = journal;
+    }
 
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-    public Long getJournalId() { return journalId; }
-    public void setJournalId(Long journalId) { this.journalId = journalId; }
+    public void setStatus(DispatchStatus status) {
+        this.status = status;
+    }
 
-    public DispatchStatus getStatus() { return status; }
-    public void setStatus(DispatchStatus status) { this.status = status; }
+    public void setDispatchDate(LocalDateTime dispatchDate) {
+        this.dispatchDate = dispatchDate;
+    }
 
-    public LocalDateTime getDispatchDate() { return dispatchDate; }
-    public void setDispatchDate(LocalDateTime dispatchDate) { this.dispatchDate = dispatchDate; }
+    public void setDeliveryDate(LocalDateTime deliveryDate) {
+        this.deliveryDate = deliveryDate;
+    }
 
-    public LocalDateTime getDeliveryDate() { return deliveryDate; }
-    public void setDeliveryDate(LocalDateTime deliveryDate) { this.deliveryDate = deliveryDate; }
+    public void setTrackingNumber(String trackingNumber) {
+        this.trackingNumber = trackingNumber;
+    }
 
-    public String getTrackingNumber() { return trackingNumber; }
-    public void setTrackingNumber(String trackingNumber) { this.trackingNumber = trackingNumber; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
 }

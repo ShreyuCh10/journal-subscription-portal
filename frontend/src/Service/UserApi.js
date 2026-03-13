@@ -13,3 +13,11 @@ export const getInterestedUsers = () => api.get("/api/users/interested");
 export const getNotSubscribedUsers= () => api.get("/api/users/not-subscribed");
 
 export const updateCurrentUser = (userData) => api.put("/api/users/profile", userData);
+
+export const uploadProfileImage = (formData) => {
+  return api.post("/api/users/upload-profile", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+};

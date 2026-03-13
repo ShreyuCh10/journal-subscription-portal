@@ -204,7 +204,10 @@ const UserSummary = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {payments.slice(0, 4).map((p) => (
+              {payments
+                .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate))
+                .slice(0, 5)
+                .map((p) => (
                 <div
                   key={p.id}
                   className="flex justify-between items-center p-4 rounded-xl hover:bg-gray-50 transition-colors"
@@ -266,7 +269,10 @@ const UserSummary = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {dispatch.slice(0, 4).map((d) => (
+              {dispatch
+                .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+                .slice(0, 5)
+                .map((d) => (
                 <div
                   key={d.id}
                   className="flex justify-between items-center p-4 rounded-xl hover:bg-gray-50 transition-colors"

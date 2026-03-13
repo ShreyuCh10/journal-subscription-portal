@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import com.example.JournalSubscription.entity.Payment;
-import com.example.JournalSubscription.repository.PaymentRepository;
+
 import java.util.List;
 
 @Service
@@ -56,6 +56,8 @@ public class SubscriptionService {
 
             return new SubscriptionResponse(
                     sub.getId(),
+                    sub.getUserId(),
+                    sub.getJournalId(),
                     journalTitle,
                     sub.getStatus().name(),
                     sub.getMonths(),
@@ -84,6 +86,8 @@ public class SubscriptionService {
 
             return new SubscriptionResponse(
                     sub.getId(),
+                    sub.getUserId(),
+                    sub.getJournalId(),
                     journalTitle,
                     sub.getStatus().name(),
                     sub.getMonths(),
@@ -94,7 +98,6 @@ public class SubscriptionService {
 
         }).toList();
     }
-
     public Subscription createSubscription(Long userId, Integer months) {
         Subscription subscription = new Subscription();
         subscription.setUserId(userId);

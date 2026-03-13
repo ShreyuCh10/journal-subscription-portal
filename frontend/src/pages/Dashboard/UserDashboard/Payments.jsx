@@ -14,8 +14,10 @@ import {
   Chip,
   Button,
   CircularProgress,
-  Divider
+  Divider,
+  TablePagination
 } from "@mui/material";
+
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import { getMyPayments } from "../../../Service/PaymentApi";
@@ -26,6 +28,8 @@ import { downloadReceiptByPaymentId }
 const Payments = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     fetchPayments();
@@ -48,7 +52,14 @@ const Payments = () => {
   const totalSpent = useMemo(() => {
     return payments.reduce((sum, p) => sum + p.amount, 0);
   }, [payments]);
+const handleChangePage = (event, newPage) => {
+  setPage(newPage);
+};
 
+const handleChangeRowsPerPage = (event) => {
+  setRowsPerPage(parseInt(event.target.value, 10));
+  setPage(0);
+};
  const handleDownload = async (paymentId) => {
    try {
      const fileRes = await downloadReceiptByPaymentId(paymentId);
@@ -178,7 +189,9 @@ const Payments = () => {
                 </TableHead>
 
                 <TableBody>
-                  {payments.map((p) => (
+                 {payments
+                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                   .map((p) => (
                     <TableRow key={p.id} hover>
                       <TableCell>
                         <Typography fontWeight={600}>
@@ -234,6 +247,15 @@ const Payments = () => {
 
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={payments.length}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+              />
             </CardContent>
           </Card>
         )}

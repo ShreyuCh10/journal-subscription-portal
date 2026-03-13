@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
 
     List<Subscription> findByUserId(Long userId);
+    long countByStatus(Subscription.SubscriptionStatus status);
 
 
 
