@@ -1,7 +1,7 @@
 import './App.css';
 import { useAuth } from "@clerk/clerk-react";
 import { setupInterceptors } from "./Service/api";
-import { useEffect } from "react"
+import {  useEffect } from "react"
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import Login from './pages/Login';

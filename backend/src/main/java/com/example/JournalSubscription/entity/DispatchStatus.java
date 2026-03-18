@@ -7,6 +7,7 @@ public enum DispatchStatus {
     SHIPPED,
     IN_TRANSIT,
     OUT_FOR_DELIVERY,
-    DELIVERED
+    DELIVERED,
+    CANCELLED
 
 }

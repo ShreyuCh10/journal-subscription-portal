@@ -34,6 +34,11 @@ public class Dispatch {
     private LocalDateTime deliveryDate;
     private String trackingNumber;
     private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private Integer month;
+
+    @Column(nullable = false)
+    private Integer year;
 
     @PrePersist
     public void onCreate() {
@@ -69,5 +74,7 @@ public class Dispatch {
     public void setTrackingNumber(String trackingNumber) {
         this.trackingNumber = trackingNumber;
     }
+    public void setMonth(Integer month) { this.month = month; }
+    public void setYear(Integer year) { this.year = year; }
 
 }

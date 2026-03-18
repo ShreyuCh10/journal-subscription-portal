@@ -33,11 +33,10 @@ const Checkout = () => {
     }).catch(err => console.error("Failed to load user:", err));
   }, []);
 
-  const totalPrice = cartItems.reduce(
-    (sum, item) => sum + item.price * item.months,
-    0
-  );
-
+ const totalPrice = cartItems.reduce(
+   (sum, item) => sum + item.price * item.quantity * item.years,
+   0
+ );
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -62,7 +61,7 @@ const Checkout = () => {
     try {
       // 1️⃣ Create Razorpay order
       const orderResponse = await createRazorpayOrder({
-        amount: totalPrice,
+       amount: totalPrice
       });
 
       const { orderId, amount, key } = orderResponse.data;
@@ -83,8 +82,13 @@ const Checkout = () => {
               razorpay_signature: response.razorpay_signature,
 
               userId: backendUser.id,
-              journalId: cartItems[0].id,
-              months: cartItems[0].months,
+
+              items: cartItems.map(item => ({
+                journalId: item.id,
+                quantity: item.quantity,
+                years: item.years
+              })),
+
               amount: totalPrice,
 
               fullName: formData.fullName,
@@ -244,9 +248,9 @@ const Checkout = () => {
             {cartItems.map((item) => (
               <div key={item.id} className="flex justify-between">
                 <span>
-                  {item.title} × {item.months}
+                  {item.title} × {item.quantity} ({item.years} years)
                 </span>
-                <span>₹ {item.price * item.months}</span>
+                <span>₹{item.price * item.quantity * item.years}</span>
               </div>
             ))}
 

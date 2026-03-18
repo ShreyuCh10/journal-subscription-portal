@@ -21,16 +21,10 @@ public class PaymentController {
     }
 
     // 🔹 User payments
+
     @GetMapping("/my-payments")
-    public ResponseEntity<List<PaymentResponse>> getMyPayments(Authentication authentication) {
-
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-
-        String clerkUserId = jwt.getSubject();
-
-        return ResponseEntity.ok(
-                paymentService.getUserPaymentsByClerkId(clerkUserId)
-        );
+    public List<PaymentResponse> getMyPayments() {
+        return paymentService.getUserPayments();
     }
 
     // 🔹 Admin - all payments

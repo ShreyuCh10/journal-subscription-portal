@@ -30,8 +30,11 @@ public class DispatchTrackingScheduler {
 
         for(Dispatch dispatch : dispatches){
 
-            if(dispatch.getTrackingNumber()==null)
+            if (dispatch.getTrackingNumber() == null ||
+                    dispatch.getStatus() == DispatchStatus.CANCELLED ||
+                    dispatch.getStatus() == DispatchStatus.PENDING) {
                 continue;
+            }
 
             try {
 

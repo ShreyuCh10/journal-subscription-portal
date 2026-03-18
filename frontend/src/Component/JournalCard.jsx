@@ -59,7 +59,7 @@ const JournalCard = ({ journal }) => {
 
           <div>
             <span className="text-xs text-gray-400 uppercase tracking-wide">
-              Monthly
+              Yearly
             </span>
             <div className="text-lg font-semibold text-gray-900">
               ₹{journal.price}

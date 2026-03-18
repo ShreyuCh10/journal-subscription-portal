@@ -11,81 +11,37 @@ import com.example.JournalSubscription.repository.JournalRepository;
 import java.util.List;
 
 @Service
-
 public class PaymentService {
 
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ReceiptRepository receiptRepository;
-    private final UserRepository userRepository; // ✅ add this
+    private final UserRepository userRepository;
     private final JournalRepository journalRepository;
+    private final CurrentUserService currentUserService;
 
     public PaymentService(
             InvoiceRepository invoiceRepository,
             PaymentRepository paymentRepository,
             SubscriptionRepository subscriptionRepository,
             ReceiptRepository receiptRepository,
-            UserRepository userRepository, JournalRepository journalRepository // ✅ inject here
+            UserRepository userRepository,
+            JournalRepository journalRepository,
+            CurrentUserService currentUserService
     ) {
         this.invoiceRepository = invoiceRepository;
         this.paymentRepository = paymentRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.receiptRepository = receiptRepository;
-        this.userRepository = userRepository; // ✅ assign
+        this.userRepository = userRepository;
         this.journalRepository = journalRepository;
+        this.currentUserService = currentUserService;
     }
 
-    public Payment processPayment(
-            Long invoiceId,
-            String method,
-            String razorpayPaymentId,
-            String razorpayOrderId
-    ) {
+    public List<PaymentResponse> getUserPayments() {
 
-        Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found"));
-
-        Payment payment = new Payment();
-        payment.setInvoice(invoice);
-        payment.setAmount(invoice.getAmount());
-        payment.setPaymentMethod(method);
-        payment.setStatus(Payment.PaymentStatus.SUCCESS);
-
-
-        payment.setRazorpayPaymentId(razorpayPaymentId);
-        payment.setRazorpayOrderId(razorpayOrderId);
-
-        Payment savedPayment = paymentRepository.save(payment);
-
-
-        invoice.setStatus(InvoiceStatus.PAID);
-        invoiceRepository.save(invoice);
-
-        Subscription subscription = subscriptionRepository
-                .findById(invoice.getSubscriptionId())
-                .orElseThrow(() -> new RuntimeException("Subscription not found"));
-
-        payment.setSubscription(subscription);
-
-        paymentRepository.save(payment);
-
-        subscription.setStatus(Subscription.SubscriptionStatus.ACTIVE);
-        subscriptionRepository.save(subscription);
-
-
-        Receipt receipt = new Receipt();
-        receipt.setPayment(savedPayment);
-        receipt.setReceiptNumber("REC-" + System.currentTimeMillis());
-        receiptRepository.save(receipt);
-
-        return savedPayment;
-    }
-
-    public List<PaymentResponse> getUserPaymentsByClerkId(String clerkUserId) {
-
-        User user = userRepository.findByClerkUserId(clerkUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = currentUserService.getCurrentUser();
 
         List<Payment> payments =
                 paymentRepository.findBySubscription_UserId(user.getId());

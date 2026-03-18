@@ -7,10 +7,11 @@ import com.example.JournalSubscription.repository.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Transactional
@@ -21,96 +22,63 @@ public class CheckoutService {
     private final PaymentRepository paymentRepository;
     private final ReceiptRepository receiptRepository;
     private final JournalRepository journalRepository;
+    private final DispatchRepository dispatchRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService; // ✅ added
 
     public CheckoutService(
             SubscriptionRepository subscriptionRepository,
             InvoiceRepository invoiceRepository,
             PaymentRepository paymentRepository,
             ReceiptRepository receiptRepository,
-            JournalRepository journalRepository) {
+            JournalRepository journalRepository,
+            DispatchRepository dispatchRepository,
+            UserRepository userRepository,
+            EmailService emailService // ✅ added
+    ) {
         this.subscriptionRepository = subscriptionRepository;
         this.invoiceRepository = invoiceRepository;
         this.paymentRepository = paymentRepository;
         this.receiptRepository = receiptRepository;
         this.journalRepository = journalRepository;
+        this.dispatchRepository = dispatchRepository;
+        this.userRepository = userRepository;
+        this.emailService = emailService; // ✅ added
     }
 
-    @Transactional
     public CheckoutResponse processSuccessfulPayment(
             CheckoutRequest request,
             String razorpayPaymentId,
             String razorpayOrderId
     ) {
 
-        // 1️⃣ Validate Journal
-        Journal journal = journalRepository.findById(request.getJournalId())
-                .orElseThrow(() -> new RuntimeException("Journal not found"));
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new RuntimeException("Cart items are empty");
+        }
 
-        double calculatedAmount = journal.getPrice() * request.getMonths();
+        double calculatedAmount = 0;
+
+        // =====================================================
+        // 🧮 CALCULATE AMOUNT
+        // =====================================================
+        for (var item : request.getItems()) {
+
+            Journal journal = journalRepository.findById(item.getJournalId())
+                    .orElseThrow(() -> new RuntimeException("Journal not found"));
+
+            calculatedAmount +=
+                    journal.getPrice() * item.getQuantity() * item.getYears();
+        }
 
         if (Double.compare(calculatedAmount, request.getAmount()) != 0) {
             throw new RuntimeException("Amount mismatch");
         }
 
-        Subscription subscription;
-
         // =====================================================
-        // 🔍 CHECK EXISTING SUBSCRIPTION
+        // 🏠 ADDRESS
         // =====================================================
-
-        Subscription existingSub = subscriptionRepository.findByUserId(request.getUserId())
-                .stream()
-                .filter(sub -> sub.getJournalId().equals(request.getJournalId())
-                        && sub.getStatus() == Subscription.SubscriptionStatus.ACTIVE)
-                .findFirst()
-                .orElse(null);
-
-        if (existingSub != null) {
-
-            // =====================================================
-            // 🔁 EXTEND EXISTING SUBSCRIPTION
-            // =====================================================
-
-            LocalDate startDate;
-
-            if (LocalDate.now().isAfter(existingSub.getEndDate())) {
-                startDate = LocalDate.now();
-            } else {
-                startDate = existingSub.getEndDate();
-            }
-
-            existingSub.setEndDate(startDate.plusMonths(request.getMonths()));
-            existingSub.setMonths(existingSub.getMonths() + request.getMonths());
-
-            subscription = subscriptionRepository.save(existingSub);
-
-        } else {
-
-            // =====================================================
-            // 🆕 CREATE NEW SUBSCRIPTION
-            // =====================================================
-
-            subscription = new Subscription();
-
-            subscription.setUserId(request.getUserId());
-            subscription.setJournalId(request.getJournalId());
-            subscription.setMonths(request.getMonths());
-
-            LocalDate startDate = LocalDate.now();
-
-            subscription.setStartDate(startDate);
-            subscription.setEndDate(startDate.plusMonths(request.getMonths()));
-
-            subscription.setStatus(Subscription.SubscriptionStatus.ACTIVE);
-
-        }
-
-        // =====================================================
-        // 🏠 SAVE SHIPPING ADDRESS
-        // =====================================================
-
         Address address = new Address();
-        address.setUserId(request.getUserId());   // ⭐ ADD THIS LINE
+        address.setUserId(request.getUserId());
         address.setFullName(request.getFullName());
         address.setPhone(request.getMobile());
         address.setStreet(request.getStreet());
@@ -118,16 +86,92 @@ public class CheckoutService {
         address.setState(request.getState());
         address.setPincode(request.getPincode());
 
-        subscription.setShippingAddress(address);
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Subscription savedSub = subscriptionRepository.save(subscription);
+        LocalDate today = LocalDate.now();
+
+        List<Subscription> savedSubscriptions = new ArrayList<>();
 
         // =====================================================
-        // 🧾 CREATE INVOICE
+        // 📦 CREATE SUBSCRIPTIONS
         // =====================================================
+        for (var item : request.getItems()) {
 
+            Journal journal = journalRepository.findById(item.getJournalId())
+                    .orElseThrow(() -> new RuntimeException("Journal not found"));
+
+            Subscription sub = new Subscription();
+
+            sub.setUserId(user.getId());
+            sub.setJournalId(journal.getId());
+            sub.setQuantity(item.getQuantity());
+            sub.setYears(item.getYears());
+
+            LocalDate startDate = LocalDate.of(today.getYear(), 1, 1);
+            LocalDate endDate = LocalDate.of(
+                    today.getYear() + item.getYears() - 1,
+                    12,
+                    31
+            );
+
+            sub.setStartDate(startDate);
+            sub.setEndDate(endDate);
+            sub.setStatus(Subscription.SubscriptionStatus.ACTIVE);
+            sub.setShippingAddress(address);
+
+            Subscription savedSub = subscriptionRepository.save(sub);
+            savedSubscriptions.add(savedSub);
+
+            // =====================================================
+            // 📦 CREATE DISPATCHES (BULK SAVE)
+            // =====================================================
+            List<Dispatch> dispatchList = new ArrayList<>();
+
+            for (int year = startDate.getYear(); year <= endDate.getYear(); year++) {
+                for (int month = 1; month <= 12; month++) {
+
+                    Dispatch d = new Dispatch();
+
+                    d.setSubscription(savedSub);
+                    d.setUser(user);
+                    d.setJournal(journal);
+                    d.setYear(year);
+                    d.setMonth(month);
+
+                    if (year < today.getYear() ||
+                            (year == today.getYear() && month <= today.getMonthValue())) {
+                        d.setStatus(DispatchStatus.PACKED);
+                    } else {
+                        d.setStatus(DispatchStatus.PENDING);
+                    }
+
+                    dispatchList.add(d);
+                }
+            }
+
+            dispatchRepository.saveAll(dispatchList); // ✅ bulk save
+
+            // =====================================================
+            // 📧 EMAIL (SAFE)
+            // =====================================================
+            try {
+                emailService.sendEmail(
+                        user.getEmail(),
+                        "Subscription Activated 🎉",
+                        "Journal: " + journal.getTitle() +
+                                "\nValid till: " + endDate
+                );
+            } catch (Exception e) {
+                System.out.println("Email failed (subscription)");
+            }
+        }
+
+        // =====================================================
+        // 🧾 INVOICE
+        // =====================================================
         Invoice invoice = new Invoice();
-        invoice.setSubscriptionId(savedSub.getId());
+        invoice.setSubscriptionId(savedSubscriptions.get(0).getId());
         invoice.setAmount(calculatedAmount);
         invoice.setStatus(InvoiceStatus.PAID);
         invoice.setInvoiceNumber("INV-" + System.currentTimeMillis());
@@ -135,12 +179,22 @@ public class CheckoutService {
 
         Invoice savedInvoice = invoiceRepository.save(invoice);
 
-        // =====================================================
-        // 💳 CREATE PAYMENT
-        // =====================================================
+        try {
+            emailService.sendEmail(
+                    user.getEmail(),
+                    "Invoice Generated",
+                    "Invoice No: " + invoice.getInvoiceNumber() +
+                            "\nAmount: ₹" + calculatedAmount
+            );
+        } catch (Exception e) {
+            System.out.println("Email failed (invoice)");
+        }
 
+        // =====================================================
+        // 💳 PAYMENT
+        // =====================================================
         Payment payment = new Payment();
-        payment.setSubscription(savedSub);
+        payment.setSubscription(savedSubscriptions.get(0));
         payment.setInvoice(savedInvoice);
         payment.setAmount(calculatedAmount);
         payment.setPaymentMethod("RAZORPAY");
@@ -152,9 +206,8 @@ public class CheckoutService {
         Payment savedPayment = paymentRepository.save(payment);
 
         // =====================================================
-        // 🧾 GENERATE RECEIPT
-        // =====================================================
-
+        // 🧾 RECEIPT
+        // === ==================================================
         Receipt receipt = new Receipt();
         receipt.setPayment(savedPayment);
         receipt.setReceiptNumber("RCPT-" + System.currentTimeMillis());
@@ -162,10 +215,6 @@ public class CheckoutService {
 
         Receipt savedReceipt = receiptRepository.save(receipt);
 
-        return new CheckoutResponse(
-                "SUCCESS",
-                savedReceipt.getReceiptId()
-        );
+        return new CheckoutResponse("SUCCESS", savedReceipt.getReceiptId());
     }
-
 }

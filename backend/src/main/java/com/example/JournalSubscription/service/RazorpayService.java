@@ -27,6 +27,7 @@ public class RazorpayService {
         orderRequest.put("amount", amount * 100);
         orderRequest.put("currency", "INR");
         orderRequest.put("receipt", "order_" + System.currentTimeMillis());
+        System.out.println("Amount before sending to Razorpay: " + amount);
 
         return razorpay.orders.create(orderRequest);
     }

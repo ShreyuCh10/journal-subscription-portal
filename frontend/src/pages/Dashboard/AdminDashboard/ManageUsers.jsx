@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getAllUsers } from "../../../Service/UserApi";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -21,6 +23,41 @@ const ManageUsers = () => {
 
     loadUsers();
   }, []);
+const downloadAllUsersExcel = () => {
+
+  const excelData = users.map((user) => ({
+    ID: user.id,
+    Email: user.email,
+    Subscribed: user.subscribed ? "Yes" : "No",
+    Interested: user.interested ? "Yes" : "No",
+    CreatedAt: user.createdAt
+      ? new Date(user.createdAt).toLocaleDateString()
+      : "-"
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+
+  const excelBuffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  const data = new Blob([excelBuffer], {
+    type: "application/octet-stream",
+  });
+
+  saveAs(data, "all_users.xlsx");
+  worksheet["!cols"] = [
+    { wch: 10 },
+    { wch: 30 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 15 },
+  ];
+};
 
   if (loading) return <div className="text-lg">Loading users...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
@@ -32,6 +69,12 @@ const ManageUsers = () => {
         <span className="text-gray-500 text-sm">
           Total Users: {users.length}
         </span>
+          <button
+               onClick={downloadAllUsersExcel}
+               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
+             >
+               Download Excel
+             </button>
       </div>
 
       <div className="bg-white rounded-2xl shadow overflow-hidden">

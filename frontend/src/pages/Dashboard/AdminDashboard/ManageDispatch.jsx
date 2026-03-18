@@ -76,18 +76,26 @@ const ManageDispatch = () => {
       case "PENDING": return "warning";
       case "SHIPPED": return "info";
       case "DELIVERED": return "success";
+      case "PACKED": return "secondary";
       default: return "default";
     }
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-IN", {
+const formatDate = (dateStr) => {
+    if (!dateStr || dateStr === "1970-01-01T00:00:00") return "-";
+
+    const date = new Date(dateStr);
+
+    // extra safety
+    if (isNaN(date.getTime())) return "-";
+
+    return date.toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
   };
+
 
   if (loading) {
     return (
@@ -154,6 +162,7 @@ const ManageDispatch = () => {
           <MenuItem value="PENDING">Pending</MenuItem>
           <MenuItem value="SHIPPED">Shipped</MenuItem>
           <MenuItem value="DELIVERED">Delivered</MenuItem>
+          <MenuItem value="PACKED">Packed</MenuItem>
         </TextField>
       </Box>
 
@@ -163,7 +172,7 @@ const ManageDispatch = () => {
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f7fb" }}>
-                <TableCell><b>ID</b></TableCell>
+                <TableCell><b>S.Id</b></TableCell>
                 <TableCell><b>User</b></TableCell>
                 <TableCell><b>Journal</b></TableCell>
                 <TableCell><b>Status</b></TableCell>
@@ -173,21 +182,46 @@ const ManageDispatch = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filtered.map((d) => (
+
+              {filtered.map((d, index) => (
+
                 <TableRow key={d.id} hover>
-                  <TableCell>{d.id}</TableCell>
+
+                  {/* S.No */}
+                  <TableCell>{index + 1}</TableCell>
+
+                  {/* User */}
                   <TableCell>
-                    <Typography variant="body2" fontWeight={600}>{d.userName || "-"}</Typography>
-                    <Typography variant="caption" color="text.secondary">{d.userEmail || ""}</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {d.userName || "-"}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {d.userEmail || ""}
+                    </Typography>
                   </TableCell>
+
+                  {/* Journal */}
                   <TableCell>{d.journalTitle || "-"}</TableCell>
+
+                  {/* Status */}
                   <TableCell>
-                    <Chip label={d.status} color={getStatusColor(d.status)} size="small" />
+                    <Chip
+                      label={d.status}
+                      color={getStatusColor(d.status)}
+                      size="small"
+                    />
                   </TableCell>
+
+                  {/* Dispatch Date */}
                   <TableCell>{formatDate(d.dispatchDate)}</TableCell>
+
+                  {/* Delivery Date */}
                   <TableCell>{formatDate(d.deliveryDate)}</TableCell>
+
+                  {/* Actions */}
                   <TableCell align="center">
-                    {d.status === "PENDING" && (
+
+                    {(d.status === "PENDING" || d.status === "PACKED") && (
                       <Button
                         size="small"
                         variant="contained"
@@ -197,6 +231,7 @@ const ManageDispatch = () => {
                         Ship
                       </Button>
                     )}
+
                     {d.status === "SHIPPED" && (
                       <Button
                         size="small"
@@ -207,15 +242,24 @@ const ManageDispatch = () => {
                         Deliver
                       </Button>
                     )}
+
                     {d.status === "DELIVERED" && (
-                      <Typography variant="caption" color="success.main" fontWeight={600}>
+                      <Typography
+                        variant="caption"
+                        color="success.main"
+                        fontWeight={600}
+                      >
                         ✓ Done
                       </Typography>
                     )}
+
                   </TableCell>
+
                 </TableRow>
+
               ))}
 
+              {/* EMPTY STATE */}
               {filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
@@ -225,6 +269,7 @@ const ManageDispatch = () => {
                   </TableCell>
                 </TableRow>
               )}
+
             </TableBody>
           </Table>
         </CardContent>
