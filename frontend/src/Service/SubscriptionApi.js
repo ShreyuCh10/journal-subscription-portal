@@ -12,8 +12,8 @@ export const createSubscription = (subscription) => {
   return api.post("/api/subscriptions", subscription);
 };
 
-export const fetchUserSubscriptions = (userId) => {
-  return api.get(`/api/subscriptions/user/${userId}`);
+export const fetchUserSubscriptions = () => {
+  return api.get(`/api/subscriptions/my`);
 };
 
 export const cancelSubscription = (id) => {

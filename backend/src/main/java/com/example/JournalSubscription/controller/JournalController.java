@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/journals")
@@ -18,16 +19,14 @@ public class JournalController {
         this.journalService = journalService;
     }
 
-    // CREATE JOURNAL
+    // CREATE
     @PostMapping
     public Journal createJournal(
-
             @RequestParam String title,
             @RequestParam Double price,
             @RequestParam String description,
             @RequestParam String publisher,
             @RequestParam(required = false) MultipartFile image
-
     ) throws IOException {
 
         return journalService.save(
@@ -45,23 +44,21 @@ public class JournalController {
         return journalService.findAll();
     }
 
-    // GET BY ID
+    // GET BY ID ✅ FIXED
     @GetMapping("/{id}")
-    public Journal getJournalById(@PathVariable Long id) {
+    public Journal getJournalById(@PathVariable UUID id) {
         return journalService.findById(id);
     }
 
-    // UPDATE
+    // UPDATE ✅ FIXED
     @PutMapping("/{id}")
     public Journal updateJournal(
-
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestParam String title,
             @RequestParam Double price,
             @RequestParam String description,
             @RequestParam String publisher,
             @RequestParam(required = false) MultipartFile image
-
     ) throws IOException {
 
         return journalService.update(
@@ -74,9 +71,9 @@ public class JournalController {
         );
     }
 
-    // DELETE
+    // DELETE ✅ FIXED
     @DeleteMapping("/{id}")
-    public void deleteJournal(@PathVariable Long id) {
+    public void deleteJournal(@PathVariable UUID id) {
         journalService.delete(id);
     }
 }

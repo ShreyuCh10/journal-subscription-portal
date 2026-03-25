@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -13,7 +14,7 @@ public class ReceiptResponse {
     private Double amount;
     private String paymentMethod;
     private LocalDateTime paymentDate;
-    private Long receiptId;
+    private UUID receiptId; // instead of Long
 
 
 }

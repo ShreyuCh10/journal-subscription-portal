@@ -46,7 +46,7 @@ const TrackShipment = () => {
 
   // ================= FILTER =================
 const applyFilters = () => {
-  let data = shipments.filter(d => d.status !== "CANCELLED"); // ✅ hide cancelled
+  let data = shipments.filter(d => d.status !== "CANCELLED");
 
   // Status filter
   if (statusFilter !== "all") {
@@ -60,9 +60,16 @@ const applyFilters = () => {
     );
   }
 
+  // ✅ SORT BY YEAR + MONTH (LATEST FIRST)
+  data.sort((a, b) => {
+    if (b.year !== a.year) {
+      return a.year - b.year;
+    }
+    return a.month - b.month;
+  });
+
   setFiltered(data);
 };
-
   // ================= HELPERS =================
 
   const formatDate = (date) => {

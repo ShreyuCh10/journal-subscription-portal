@@ -2,10 +2,11 @@ package com.example.JournalSubscription.service;
 
 import com.example.JournalSubscription.entity.User;
 import com.example.JournalSubscription.repository.UserRepository;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class UserService {
@@ -18,38 +19,47 @@ public class UserService {
         this.clerkService = clerkService;
     }
 
-    public User syncUser(String clerkUserId, String email, String name) {
+    // 🔥 SYNC USER (PRODUCTION SAFE)
+    @Transactional
+    public User syncUser(Jwt jwt) {
 
-        return userRepository.findByClerkUserId(clerkUserId)
-                .map(user -> {
+        String clerkId = jwt.getSubject();
+        String email = jwt.getClaimAsString("email");   // ✅ FIXED
+        String name = jwt.getClaimAsString("name");     // ✅ FIXED
 
-                    if (user.getEmail() == null) {
-                        user.setEmail(email);
-                    }
-
-                    if (user.getFullName() == null) {
-                        user.setFullName(name);
-                    }
-
-                    return userRepository.save(user);
-                })
+        // 1️⃣ Check by clerkId
+        return userRepository.findByClerkUserId(clerkId)
                 .orElseGet(() -> {
 
-                    User user = new User();
+                    // 2️⃣ Check by email
+                    return userRepository.findByEmail(email)
+                            .map(user -> {
+                                // ✅ Link clerkId if different
+                                if (!clerkId.equals(user.getClerkUserId())) {
+                                    user.setClerkUserId(clerkId);
+                                    return userRepository.save(user);
+                                }
+                                return user;
+                            })
+                            .orElseGet(() -> {
+                                // 3️⃣ Create new user
+                                User newUser = new User();
+                                newUser.setClerkUserId(clerkId);
+                                newUser.setEmail(email);
+                                newUser.setFullName(name);
+                                newUser.setSubscribed(false);
+                                newUser.setInterested(false);
 
-                    user.setClerkUserId(clerkUserId);
-                    user.setEmail(email);
-                    user.setFullName(name);
-                    user.setSubscribed(false);
-                    user.setInterested(false);
-
-                    return userRepository.save(user);
+                                return userRepository.save(newUser);
+                            });
                 });
     }
+
     public User getByClerkId(String clerkUserId) {
         return userRepository.findByClerkUserId(clerkUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
     public User createUser(String clerkUserId, String email, String fullName) {
 
         userRepository.findByClerkUserId(clerkUserId).ifPresent(u -> {
@@ -57,10 +67,9 @@ public class UserService {
         });
 
         User user = new User();
-
         user.setClerkUserId(clerkUserId);
         user.setEmail(email);
-        user.setFullName(fullName);   // now valid
+        user.setFullName(fullName);
         user.setSubscribed(false);
         user.setInterested(false);
 
@@ -74,6 +83,7 @@ public class UserService {
     public List<User> findAllNotSubscribed() {
         return userRepository.findBySubscribedFalse();
     }
+
     public List<User> findAll() {
         return userRepository.findAll();
     }

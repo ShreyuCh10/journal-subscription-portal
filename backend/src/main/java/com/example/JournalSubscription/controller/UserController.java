@@ -36,14 +36,9 @@ public class UserController {
     @GetMapping("/me")
     public User getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
 
-        String clerkUserId = jwt.getSubject();
-
-        String email = jwt.getClaimAsString("email");
-        String name = jwt.getClaimAsString("name");
-
         System.out.println("JWT CLAIMS = " + jwt.getClaims());
 
-        return userService.syncUser(clerkUserId, email, name);
+        return userService.syncUser(jwt); // ✅ CORRECT
     }
     @GetMapping("/interested")
     public List<User> getInterestedUsers() {

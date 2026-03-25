@@ -29,25 +29,17 @@ public class DispatchScheduler {
         System.out.println("Checking subscriptions for monthly dispatch");
 
         List<Subscription> subscriptions = subscriptionRepository.findAll();
-
         LocalDate today = LocalDate.now();
 
         for (Subscription sub : subscriptions) {
 
-            if (sub.getStatus().name().equals("ACTIVE")) {
+            if (sub.getStatus() == Subscription.SubscriptionStatus.ACTIVE) {
 
-                if (today.isBefore(sub.getEndDate()) || today.equals(sub.getEndDate())) {
-                    dispatchService.createDispatch(
-                            sub.getId(),
-                            sub.getUserId(),
-                            sub.getJournalId()
-                    );
+                if (!today.isAfter(sub.getEndDate())) {
 
+                    dispatchService.createDispatch(sub.getId());
                 }
-
             }
-
         }
-
     }
 }

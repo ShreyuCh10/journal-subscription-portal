@@ -1,9 +1,12 @@
 package com.example.JournalSubscription.dto;
 import lombok.Data;
+
+import java.util.UUID;
+
 @Data
 public class CheckoutItem {
 
-    private Long journalId;
+    private UUID journalId;
     private Integer quantity;
     private Integer years;
 

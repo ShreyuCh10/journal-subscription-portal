@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,136 +9,276 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TableContainer,
-  Paper,
+  CircularProgress,
+  Box,
+  Avatar,
+  Divider
 } from "@mui/material";
 
-const StatCard = ({ title, value, color, icon }) => {
-  return (
-    <Card className="rounded-2xl shadow-md">
-      <CardContent className="flex items-center gap-4">
-        <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center text-white text-xl`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-gray-500 text-sm">{title}</p>
-          <p className="text-2xl font-bold">{value}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
 
+import {
+  getAdminStats,
+  getChartData,
+  getRecentUsers,
+  getRecentPayments
+} from "../../../Service/AdminApi";
+
+// ================= STAT CARD =================
+const StatCard = ({ title, value, icon, gradient }) => (
+  <Card
+    sx={{
+      borderRadius: 3,
+      background: gradient,
+      color: "#fff",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+      transition: "all 0.3s ease",
+      "&:hover": {
+        transform: "translateY(-6px) scale(1.02)",
+        boxShadow: "0 20px 40px rgba(0,0,0,0.12)"
+      }
+    }}
+  >
+    <CardContent sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Box>
+        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+          {title}
+        </Typography>
+        <Typography variant="h4" fontWeight={700}>
+          {value ?? "-"}
+        </Typography>
+      </Box>
+
+      <Box sx={{ fontSize: 32 }}>{icon}</Box>
+    </CardContent>
+  </Card>
+);
+
+// ================= MAIN =================
 const AdminHome = () => {
+  const [stats, setStats] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      const [statsRes, chartRes, usersRes, paymentsRes] = await Promise.all([
+        getAdminStats(),
+        getChartData(),
+        getRecentUsers(),
+        getRecentPayments()
+      ]);
+
+      setStats(statsRes.data);
+      setChartData(chartRes.data.userGrowth || []);
+      setUsers(usersRes.data || []);
+      setPayments(paymentsRes.data || []);
+    } catch (err) {
+      console.error("Dashboard error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================= LOADING =================
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <Box sx={{ px: { xs: 2, md: 5 }, py: 4 }}>
 
-      {/* Stats */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={3}>
-          <StatCard title="Total Users" value="1,245" color="bg-blue-500" icon="👥" />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard title="Total Journals" value="342" color="bg-purple-500" icon="📘" />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard title="Active Subscriptions" value="189" color="bg-green-500" icon="💳" />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard title="Revenue" value="₹45,000" color="bg-orange-500" icon="💰" />
-        </Grid>
+      {/* ===== HEADER ===== */}
+      <Box mb={5}>
+        <Typography variant="h4" fontWeight={700}>
+          Admin Dashboard
+        </Typography>
+        <Typography color="text.secondary">
+          Monitor your platform performance 🚀
+        </Typography>
+      </Box>
+
+      {/* ===== STATS ===== */}
+      <Grid container spacing={3} mb={5}>
+        {[
+          {
+            title: "Total Users",
+            value: stats?.totalUsers,
+            icon: "👥",
+            gradient: "linear-gradient(135deg, #6366f1, #4f46e5)"
+          },
+          {
+            title: "Journals",
+            value: stats?.totalJournals,
+            icon: "📘",
+            gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)"
+          },
+          {
+            title: "Active Subs",
+            value: stats?.activeSubscriptions,
+            icon: "💳",
+            gradient: "linear-gradient(135deg, #22c55e, #16a34a)"
+          },
+          {
+            title: "Revenue",
+            value: `₹${stats?.revenue || 0}`,
+            icon: "💰",
+            gradient: "linear-gradient(135deg, #f59e0b, #d97706)"
+          }
+        ].map((item, i) => (
+          <Grid key={i} size={{ xs: 12, md: 3 }}>
+            <StatCard {...item} />
+          </Grid>
+        ))}
       </Grid>
 
-      {/* Charts */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Card className="rounded-2xl shadow-md h-72">
-            <CardContent>
-              <Typography className="font-semibold mb-2">Users Growth</Typography>
-              <div className="h-56 flex items-center justify-center text-gray-400">
-                📈 Chart Placeholder
-              </div>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card className="rounded-2xl shadow-md h-72">
-            <CardContent>
-              <Typography className="font-semibold mb-2">Revenue Stats</Typography>
-              <div className="h-56 flex items-center justify-center text-gray-400">
-                📊 Chart Placeholder
-              </div>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* ===== CHART + INSIGHTS ===== */}
+      <Grid container spacing={3} mb={5}>
 
-      {/* Tables */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Card className="rounded-2xl shadow-md">
-            <CardContent>
-              <Typography className="font-semibold mb-4">Recent Users</Typography>
-              <TableContainer component={Paper} className="shadow-none">
-                <Table>
-                  <TableHead>
-                    <TableRow className="bg-gray-50">
-                      <TableCell className="font-semibold">Name</TableCell>
-                      <TableCell className="font-semibold">Email</TableCell>
-                      <TableCell className="font-semibold">Status</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow className="hover:bg-gray-50">
-                      <TableCell>Rohit</TableCell>
-                      <TableCell>rohit@gmail.com</TableCell>
-                      <TableCell className="text-green-600 font-medium">Active</TableCell>
-                    </TableRow>
-                    <TableRow className="hover:bg-gray-50">
-                      <TableCell>Anjali</TableCell>
-                      <TableCell>anjali@gmail.com</TableCell>
-                      <TableCell className="text-green-600 font-medium">Active</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+        {/* CHART */}
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card sx={{ p: 3, borderRadius: 3 }}>
+            <Typography fontWeight={600} mb={2}>
+              Growth Overview
+            </Typography>
+
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={chartData}>
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="users" stroke="#6366f1" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={3} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Card className="rounded-2xl shadow-md">
-            <CardContent>
-              <Typography className="font-semibold mb-4">Recent Payments</Typography>
-              <TableContainer component={Paper} className="shadow-none">
-                <Table>
-                  <TableHead>
-                    <TableRow className="bg-gray-50">
-                      <TableCell className="font-semibold">User</TableCell>
-                      <TableCell className="font-semibold">Amount</TableCell>
-                      <TableCell className="font-semibold">Status</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow className="hover:bg-gray-50">
-                      <TableCell>Rohit</TableCell>
-                      <TableCell>₹499</TableCell>
-                      <TableCell className="text-green-600 font-medium">Success</TableCell>
-                    </TableRow>
-                    <TableRow className="hover:bg-gray-50">
-                      <TableCell>Anjali</TableCell>
-                      <TableCell>₹999</TableCell>
-                      <TableCell className="text-green-600 font-medium">Success</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+        {/* INSIGHTS */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card sx={{ p: 3, borderRadius: 3, height: "100%" }}>
+            <Typography fontWeight={600} mb={2}>
+              Insights
+            </Typography>
+
+            <Box display="flex" flexDirection="column" gap={2}>
+              {[
+                "🔥 Highest revenue this month",
+                "📈 User growth increasing",
+                "💡 Focus on retention strategy"
+              ].map((text, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: "#f9fafb",
+                    "&:hover": { bgcolor: "#f3f4f6" }
+                  }}
+                >
+                  {text}
+                </Box>
+              ))}
+            </Box>
           </Card>
         </Grid>
       </Grid>
 
-    </div>
+      {/* ===== TABLES ===== */}
+      <Grid container spacing={3}>
+
+        {/* USERS */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card sx={{ p: 2, borderRadius: 3 }}>
+            <Typography fontWeight={600} mb={2}>
+              Recent Users
+            </Typography>
+
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell><b>User</b></TableCell>
+                  <TableCell><b>Email</b></TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {users.length > 0 ? users.map((u) => (
+                  <TableRow key={u.id} hover>
+                    <TableCell>
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <Avatar>{u.name?.charAt(0)}</Avatar>
+                        {u.name}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ color: "#6b7280" }}>
+                      {u.email}
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={2} align="center">
+                      No users found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </Grid>
+
+        {/* PAYMENTS */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card sx={{ p: 2, borderRadius: 3 }}>
+            <Typography fontWeight={600} mb={2}>
+              Recent Payments
+            </Typography>
+
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell><b>User</b></TableCell>
+                  <TableCell><b>Amount</b></TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {payments.length > 0 ? payments.map((p) => (
+                  <TableRow key={p.id} hover>
+                    <TableCell>{p.userName}</TableCell>
+                    <TableCell>₹{p.amount}</TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={2} align="center">
+                      No payments found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </Grid>
+
+      </Grid>
+    </Box>
   );
 };
 

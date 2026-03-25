@@ -3,78 +3,61 @@ package com.example.JournalSubscription.service;
 import com.example.JournalSubscription.dto.SubscriptionResponse;
 import com.example.JournalSubscription.entity.*;
 import com.example.JournalSubscription.repository.*;
-
-
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
-    private final JournalRepository journalRepository;
-    private final ReceiptRepository receiptRepository;
     private final PaymentRepository paymentRepository;
-    private final RazorpayService razorpayService;
+    private final ReceiptRepository receiptRepository;
     private final DispatchRepository dispatchRepository;
-    private final UserRepository userRepository;
+    private final RazorpayService razorpayService;
+    private final CurrentUserService currentUserService;
 
     public SubscriptionService(
             SubscriptionRepository subscriptionRepository,
-            JournalRepository journalRepository,
-            ReceiptRepository receiptRepository,
             PaymentRepository paymentRepository,
-            RazorpayService razorpayService,
+            ReceiptRepository receiptRepository,
             DispatchRepository dispatchRepository,
-            UserRepository userRepository) {
-
+            RazorpayService razorpayService,
+            CurrentUserService currentUserService
+    ) {
         this.subscriptionRepository = subscriptionRepository;
-        this.journalRepository = journalRepository;
-        this.receiptRepository = receiptRepository;
         this.paymentRepository = paymentRepository;
+        this.receiptRepository = receiptRepository;
+        this.dispatchRepository = dispatchRepository;
         this.razorpayService = razorpayService;
-        this.dispatchRepository=dispatchRepository;
-        this.userRepository=userRepository;
+        this.currentUserService = currentUserService;
     }
 
-    // =====================================================
-    // FIND BY ID
-    // =====================================================
-
-    public Subscription findById(Long id) {
+    // ================= FIND BY ID =================
+    public Subscription findById(UUID id) {
         return subscriptionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Subscription not found"));
     }
 
-    // =====================================================
-    // FETCH ALL SUBSCRIPTIONS
-    // =====================================================
-
+    // ================= ALL SUBSCRIPTIONS =================
     public List<SubscriptionResponse> findAll() {
 
         return subscriptionRepository.findAll().stream().map(sub -> {
 
-            // ✅ FIXED VARIABLE
-            User user = userRepository.findById(sub.getUserId()).orElse(null);
+            String userName = sub.getUser().getFullName();
+            String journalTitle = sub.getJournal().getTitle();
 
-            String userName = user != null ? user.getFullName() : "Unknown";
-
-            String journalTitle = journalRepository
-                    .findById(sub.getJournalId())
-                    .map(Journal::getTitle)
-                    .orElse("Unknown Journal");
-
-            Long receiptId = receiptRepository
+            UUID receiptId = receiptRepository
                     .findTopByPayment_Subscription_IdOrderByGeneratedAtDesc(sub.getId())
-                    .map(Receipt::getReceiptId)
+                    .map(Receipt::getId)
                     .orElse(null);
 
             return new SubscriptionResponse(
                     sub.getId(),
-                    sub.getUserId(),
-                    sub.getJournalId(),
+                    sub.getUser().getId(),
+                    sub.getJournal().getId(),
                     journalTitle,
                     sub.getStatus().name(),
                     sub.getQuantity(),
@@ -82,73 +65,63 @@ public class SubscriptionService {
                     sub.getStartDate(),
                     sub.getEndDate(),
                     receiptId,
-                    userName   // ✅ NEW FIELD
+                    userName
             );
 
         }).toList();
     }
 
-    // =====================================================
-    // FETCH USER SUBSCRIPTIONS
-    // =====================================================
+    // ================= CURRENT USER SUBSCRIPTIONS =================
+    public List<SubscriptionResponse> getMySubscriptions() {
 
-    public List<SubscriptionResponse> findByUserId(Long userId) {
+        User currentUser = currentUserService.getCurrentUser();
 
-        return subscriptionRepository.findByUserId(userId).stream().map(sub -> {
+        return subscriptionRepository
+                .findByUser_Id(currentUser.getId())
+                .stream()
+                .map(sub -> {
 
-            User user = userRepository.findById(sub.getUserId()).orElse(null);
-            String userName = user != null ? user.getFullName() : "Unknown";
+                    String journalTitle = sub.getJournal().getTitle();
 
-            String journalTitle = journalRepository
-                    .findById(sub.getJournalId())
-                    .map(Journal::getTitle)
-                    .orElse("Unknown Journal");
+                    UUID receiptId = receiptRepository
+                            .findTopByPayment_Subscription_IdOrderByGeneratedAtDesc(sub.getId())
+                            .map(Receipt::getId)
+                            .orElse(null);
 
-            Long receiptId = receiptRepository
-                    .findTopByPayment_Subscription_IdOrderByGeneratedAtDesc(sub.getId())
-                    .map(Receipt::getReceiptId)
-                    .orElse(null);
+                    return new SubscriptionResponse(
+                            sub.getId(),
+                            sub.getUser().getId(),
+                            sub.getJournal().getId(),
+                            journalTitle,
+                            sub.getStatus().name(),
+                            sub.getQuantity(),
+                            sub.getYears(),
+                            sub.getStartDate(),
+                            sub.getEndDate(),
+                            receiptId,
+                            currentUser.getFullName()
+                    );
 
-            return new SubscriptionResponse(
-                    sub.getId(),
-                    sub.getUserId(),
-                    sub.getJournalId(),
-                    journalTitle,
-                    sub.getStatus().name(),
-                    sub.getQuantity(),
-                    sub.getYears(),
-                    sub.getStartDate(),
-                    sub.getEndDate(),
-                    receiptId,
-                    userName   // ✅ NEW
-            );
-
-        }).toList();
+                }).toList();
     }
 
-    // =====================================================
-    // CREATE SUBSCRIPTION (CALENDAR BASED)
-    // =====================================================
+    // ================= CREATE =================
+    public Subscription createSubscription(Journal journal, Integer quantity, Integer years) {
 
-    public Subscription createSubscription(Long userId, Integer quantity, Integer years) {
+        User user = currentUserService.getCurrentUser();
 
         Subscription subscription = new Subscription();
 
-        subscription.setUserId(userId);
+        subscription.setUser(user);
+        subscription.setJournal(journal);
         subscription.setQuantity(quantity);
         subscription.setYears(years);
         subscription.setStatus(Subscription.SubscriptionStatus.INACTIVE);
 
         LocalDate today = LocalDate.now();
 
-        // ✅ FIXED: Jan–Dec logic
         LocalDate startDate = LocalDate.of(today.getYear(), 1, 1);
-
-        LocalDate endDate = LocalDate.of(
-                today.getYear() + years - 1,
-                12,
-                31
-        );
+        LocalDate endDate = LocalDate.of(today.getYear() + years - 1, 12, 31);
 
         subscription.setStartDate(startDate);
         subscription.setEndDate(endDate);
@@ -156,43 +129,21 @@ public class SubscriptionService {
         return subscriptionRepository.save(subscription);
     }
 
-    // =====================================================
-    // CANCEL SUBSCRIPTION + REFUND
-    // =====================================================
-    public void cancelSubscription(Long subscriptionId) {
+    // ================= CANCEL =================
+    public void cancelSubscription(UUID subscriptionId) {
 
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new RuntimeException("Subscription not found"));
 
-        // ✅ THEN fetch payment
         Payment payment = paymentRepository
                 .findTopBySubscription_Id(subscriptionId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
-        // =====================================================
-        // ✅ HANDLE ALREADY REFUNDED (FIXED)
-        // =====================================================
         if (payment.getStatus() == Payment.PaymentStatus.REFUNDED) {
-
             subscription.setStatus(Subscription.SubscriptionStatus.CANCELLED);
             subscriptionRepository.save(subscription);
-
-            return; // ✅ idempotent exit
+            return;
         }
-
-
-
-        if (subscription.getStatus() != Subscription.SubscriptionStatus.ACTIVE) {
-            throw new RuntimeException("Subscription is not active");
-        }
-
-        if (payment.getRazorpayPaymentId() == null) {
-            throw new RuntimeException("Missing Razorpay payment ID");
-        }
-
-        // =====================================================
-        // ✅ BEST: COUNT REMAINING MONTHS FROM DISPATCH TABLE
-        // =====================================================
 
         long remainingMonths =
                 dispatchRepository.countBySubscription_IdAndStatus(subscriptionId, DispatchStatus.PENDING);
@@ -203,108 +154,63 @@ public class SubscriptionService {
             return;
         }
 
-        // =====================================================
-        // 💰 REFUND CALCULATION (YEARLY → MONTHLY)
-        // =====================================================
-
-        double pricePerMonthPerUnit =
+        double pricePerMonth =
                 payment.getAmount() /
                         (subscription.getQuantity() * subscription.getYears() * 12);
 
         double refundAmount =
-                pricePerMonthPerUnit *
-                        subscription.getQuantity() *
-                        remainingMonths;
+                pricePerMonth * subscription.getQuantity() * remainingMonths;
 
         refundAmount = Math.round(refundAmount * 100.0) / 100.0;
 
-        // =====================================================
-        // 💳 REFUND VIA RAZORPAY
-        // =====================================================
-
         try {
-
             razorpayService.refundPayment(
                     payment.getRazorpayPaymentId(),
                     refundAmount
             );
-
-            payment.setStatus(Payment.PaymentStatus.REFUNDED);
-            paymentRepository.save(payment);
-
         } catch (Exception e) {
-
-            if (e.getMessage() != null &&
-                    e.getMessage().contains("fully refunded already")) {
-
-                payment.setStatus(Payment.PaymentStatus.REFUNDED);
-                paymentRepository.save(payment);
-
-            } else {
-                throw new RuntimeException("Refund failed: " + e.getMessage());
-            }
+            throw new RuntimeException("Refund failed: " + e.getMessage());
         }
 
-        // =====================================================
-        // 🚚 CANCEL ALL FUTURE (PENDING) DISPATCHES
-        // =====================================================
+        payment.setStatus(Payment.PaymentStatus.REFUNDED);
+        paymentRepository.save(payment);
 
+        // cancel dispatch
         List<Dispatch> dispatches =
                 dispatchRepository.findBySubscription_Id(subscriptionId);
 
-        for (Dispatch d : dispatches) {
+        dispatches.forEach(d -> {
             if (d.getStatus() == DispatchStatus.PENDING) {
                 d.setStatus(DispatchStatus.CANCELLED);
             }
-        }
+        });
 
         dispatchRepository.saveAll(dispatches);
-
-        // =====================================================
-        // ❌ CANCEL SUBSCRIPTION
-        // =====================================================
 
         subscription.setStatus(Subscription.SubscriptionStatus.CANCELLED);
         subscriptionRepository.save(subscription);
     }
 
-    // =====================================================
-    // RENEW SUBSCRIPTION (CALENDAR BASED)
-    // =====================================================
+    // ================= RENEW =================
+    public UUID renewSubscription(UUID oldId, Integer years) {
 
-    public Long renewSubscription(Long oldSubscriptionId, Integer years) {
-
-        Subscription oldSub = subscriptionRepository.findById(oldSubscriptionId)
-                .orElseThrow(() -> new RuntimeException("Old subscription not found"));
-
-        if (oldSub.getStatus() == Subscription.SubscriptionStatus.ACTIVE &&
-                LocalDate.now().isBefore(oldSub.getEndDate())) {
-            throw new RuntimeException("Subscription is still active");
-        }
+        Subscription oldSub = subscriptionRepository.findById(oldId)
+                .orElseThrow(() -> new RuntimeException("Not found"));
 
         Subscription newSub = new Subscription();
 
-        newSub.setUserId(oldSub.getUserId());
-        newSub.setJournalId(oldSub.getJournalId());
+        newSub.setUser(oldSub.getUser());
+        newSub.setJournal(oldSub.getJournal());
         newSub.setQuantity(oldSub.getQuantity());
         newSub.setYears(years);
 
         LocalDate today = LocalDate.now();
 
-        // ✅ FIXED: Jan–Dec renewal
-        LocalDate startDate = LocalDate.of(today.getYear(), 1, 1);
-        LocalDate endDate = LocalDate.of(
-                today.getYear() + years - 1,
-                12,
-                31
-        );
+        newSub.setStartDate(LocalDate.of(today.getYear(), 1, 1));
+        newSub.setEndDate(LocalDate.of(today.getYear() + years - 1, 12, 31));
 
-        newSub.setStartDate(startDate);
-        newSub.setEndDate(endDate);
         newSub.setStatus(Subscription.SubscriptionStatus.INACTIVE);
 
-        Subscription saved = subscriptionRepository.save(newSub);
-
-        return saved.getId();
+        return subscriptionRepository.save(newSub).getId();
     }
 }

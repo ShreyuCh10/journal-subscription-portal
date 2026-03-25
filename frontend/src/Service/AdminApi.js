@@ -42,3 +42,25 @@ export const createSubscription = (data) => {
 export const deleteSubscription = (id) => {
   return api.delete(`/admin/subscriptions/${id}`);
 };
+
+
+
+// ================= DASHBOARD STATS =================
+export const getAdminStats = () => {
+  return api.get("/api/admin/stats");
+};
+
+// ================= CHART DATA =================
+export const getChartData = () => {
+  return api.get("/api/admin/charts");
+};
+
+// ================= RECENT USERS =================
+export const getRecentUsers = () => {
+  return api.get("/api/admin/recent-users");
+};
+
+// ================= RECENT PAYMENTS =================
+export const getRecentPayments = () => {
+  return api.get("/api/admin/recent-payments");
+};

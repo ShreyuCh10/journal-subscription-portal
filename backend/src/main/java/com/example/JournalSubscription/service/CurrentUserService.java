@@ -6,33 +6,26 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-@Service
-public class CurrentUserService {
+    @Service
+    public class CurrentUserService {
 
-    private final UserRepository userRepository;
+        private final UserRepository userRepository;
 
-    private User cachedUser;
-
-    public CurrentUserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    public User getCurrentUser() {
-
-        if (cachedUser != null) {
-            return cachedUser;
+        public CurrentUserService(UserRepository userRepository) {
+            this.userRepository = userRepository;
         }
 
-        Jwt jwt = (Jwt) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
+        public User getCurrentUser() {
 
-        String clerkUserId = jwt.getSubject();
+            Jwt jwt = (Jwt) SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+                    .getPrincipal();
 
-        cachedUser = userRepository.findByClerkUserId(clerkUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String clerkUserId = jwt.getSubject();
 
-        return cachedUser;
+            return userRepository.findByClerkUserId(clerkUserId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+        }
     }
-}
+

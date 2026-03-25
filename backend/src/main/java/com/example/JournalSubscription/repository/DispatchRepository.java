@@ -8,8 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface DispatchRepository extends JpaRepository<Dispatch, Long> {
+public interface DispatchRepository extends JpaRepository<Dispatch, UUID> {
 
     List<Dispatch> findByStatus(DispatchStatus status);
 
@@ -29,8 +30,9 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long> {
     List<Dispatch> findBySubscription(Subscription subscription);
 
 
-    List<Dispatch> findBySubscription_Id(Long subscriptionId);
+    List<Dispatch> findBySubscription_Id(UUID subscriptionId);
 
-    long countBySubscription_IdAndStatus(Long subscriptionId, DispatchStatus status);
+    long countBySubscription_IdAndStatus(UUID subscriptionId, DispatchStatus status);
+    List<Dispatch> findByUser_Id(UUID userId);
 
 }

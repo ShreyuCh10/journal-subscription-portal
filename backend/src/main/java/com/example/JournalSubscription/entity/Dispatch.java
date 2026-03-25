@@ -1,18 +1,22 @@
 package com.example.JournalSubscription.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
+@Data
 @Getter
 @Entity
 @Table(name = "dispatch")
 public class Dispatch {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @UuidGenerator
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "subscription_id")

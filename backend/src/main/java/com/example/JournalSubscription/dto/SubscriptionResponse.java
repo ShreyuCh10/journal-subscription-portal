@@ -1,13 +1,14 @@
 package com.example.JournalSubscription.dto;
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 public class SubscriptionResponse {
 
-    private Long id;
-    private Long userId;
-    private Long journalId;
+    private UUID id;
+    private UUID userId;
+    private UUID journalId;
     private String journalTitle;
     private String status;
 
@@ -16,20 +17,21 @@ public class SubscriptionResponse {
 
     private LocalDate startDate;
     private LocalDate endDate;
-    private Long receiptId;
+    private UUID receiptId;
     private String userName;
 
 
-    public SubscriptionResponse(Long id,
-                                Long userId,
-                                Long journalId,
+    public SubscriptionResponse(UUID id,
+                                UUID userId,
+                                UUID journalId,
                                 String journalTitle,
                                 String status,
                                 Integer quantity,
                                 Integer years,
                                 LocalDate startDate,
                                 LocalDate endDate,
-                                Long receiptId, String userName) {
+                                UUID receiptId,
+                                String userName) {
 
         this.id = id;
         this.userId = userId;
@@ -41,6 +43,7 @@ public class SubscriptionResponse {
         this.startDate = startDate;
         this.endDate = endDate;
         this.receiptId = receiptId;
+        this.userName =userName;
     }
 
 // ================= GETTERS =================

@@ -1,14 +1,14 @@
 package com.example.JournalSubscription.dto;
 import lombok.Data;
 import java.util.List;
+import java.util.UUID;
 @Data
 public class CheckoutRequest {
 
 
-    private Long userId;
-    private Long journalId;
 
-    // NEW FIELDS
+
+    private UUID journalId;
     private Integer quantity;
     private Integer years;
 

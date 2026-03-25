@@ -3,7 +3,7 @@ import {
   fetchUserSubscriptions,
   cancelSubscription,
 } from "../../../Service/SubscriptionApi";
-import { downloadReceipt } from "../../../Service/ReceiptApi";
+import { downloadReceiptByPaymentId } from "../../../Service/ReceiptApi";
 import { getCurrentUser } from "../../../Service/UserApi";
 import { useNavigate } from "react-router-dom";
 import {
@@ -83,7 +83,7 @@ const MySubscriptions = () => {
 
   const handleDownload = async (receiptId) => {
     try {
-      const response = await downloadReceipt(receiptId);
+      const response = await downloadReceiptByPaymentId(receiptId);
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -226,14 +226,7 @@ const MySubscriptions = () => {
                 {/* RIGHT */}
                 <div className="flex flex-col gap-2 items-end">
 
-                  {sub.receiptId && (
-                    <button
-                      onClick={() => handleDownload(sub.receiptId)}
-                      className="text-blue-600 text-xs font-bold"
-                    >
-                      Receipt
-                    </button>
-                  )}
+
 
                   <button
                     onClick={() => handleViewShipments(sub.journalId)}

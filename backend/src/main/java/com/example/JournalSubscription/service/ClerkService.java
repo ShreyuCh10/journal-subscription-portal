@@ -1,5 +1,6 @@
 package com.example.JournalSubscription.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -12,7 +13,8 @@ public class ClerkService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private final String CLERK_SECRET_KEY = "sk_test_mTfXz1GrgE0zzAh4EHhWQkFVqIMTM0tW6et2aJGYke"; // 🔑 put your clerk secret key
+    @Value("${clerk.secret.key}")
+    private String CLERK_SECRET_KEY;// 🔑 put your clerk secret key
 
     public Map getUser(String clerkUserId) {
 

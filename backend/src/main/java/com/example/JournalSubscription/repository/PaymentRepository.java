@@ -3,24 +3,40 @@ package com.example.JournalSubscription.repository;
 import com.example.JournalSubscription.entity.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface PaymentRepository extends JpaRepository<Payment, Long> {
+public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
-    Optional<Payment> findByInvoice_Id(Long invoiceId);
+    List<Payment> findBySubscription_User_Id(UUID userId);
 
-    Optional<Payment> findTopBySubscription_Id(Long subscriptionId);
 
-    List<Payment> findBySubscription_UserId(Long userId);
 
-    Optional<Payment> findTopBySubscription_IdOrderByPaymentDateDesc(Long subscriptionId);
+
     long countByStatus(Payment.PaymentStatus status);
 
-    // ✅ Sum payments by status
+    Optional<Payment> findTopBySubscription_Id(UUID subscriptionId);
+    // ✅ FIXED SUM QUERY
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = :status")
-    Double sumAmountByStatus(@Param("status") Payment.PaymentStatus status);
+    Double sumAmountByStatus(Payment.PaymentStatus status);
+    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = 'SUCCESS'")
+    Double getTotalRevenue();
 
+    @Query("""
+SELECT new map(
+  FUNCTION('MONTH', p.paymentDate) as month,
+  SUM(p.amount) as revenue
+)
+FROM Payment p
+WHERE p.status = 'SUCCESS'
+GROUP BY FUNCTION('MONTH', p.paymentDate)
+ORDER BY month
+""")
+
+    List<Map<String, Object>> getMonthlyRevenue();
+
+    List<Payment> findTop5ByOrderByPaymentDateDesc();
 }

@@ -1,8 +1,7 @@
 package com.example.JournalSubscription.service;
 
-import com.example.JournalSubscription.entity.Dispatch;
-import com.example.JournalSubscription.entity.DispatchStatus;
-import com.example.JournalSubscription.repository.DispatchRepository;
+import com.example.JournalSubscription.entity.Subscription;
+import com.example.JournalSubscription.repository.SubscriptionRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -12,30 +11,30 @@ import java.util.List;
 @Component
 public class MonthlyDispatchScheduler {
 
-    private final DispatchRepository dispatchRepository;
+    private final SubscriptionRepository subscriptionRepository; // ✅ added
+    private final DispatchService dispatchService;               // ✅ added
 
-    public MonthlyDispatchScheduler(DispatchRepository dispatchRepository) {
-        this.dispatchRepository = dispatchRepository;
+    public MonthlyDispatchScheduler(
+            SubscriptionRepository subscriptionRepository,
+            DispatchService dispatchService
+    ) {
+        this.subscriptionRepository = subscriptionRepository;
+        this.dispatchService = dispatchService;
     }
 
-    @Scheduled(cron = "0 0 9 1 * ?") // 1st of every month
-    public void activateMonthlyDispatch() {
+    @Scheduled(cron = "0 0 0 * * *")
+    public void generateMonthlyDispatch() {
 
+        List<Subscription> subscriptions = subscriptionRepository.findAll();
         LocalDate today = LocalDate.now();
 
-        int month = today.getMonthValue();
-        int year = today.getYear();
+        for (Subscription sub : subscriptions) {
 
-        List<Dispatch> dispatches =
-                dispatchRepository.findByMonthAndYearAndStatus(
-                        month,
-                        year,
-                        DispatchStatus.PENDING
-                );
+            if (sub.getStatus() == Subscription.SubscriptionStatus.ACTIVE &&
+                    !today.isAfter(sub.getEndDate())) {
 
-        for (Dispatch d : dispatches) {
-            d.setStatus(DispatchStatus.PACKED);
-            dispatchRepository.save(d);
+                dispatchService.createDispatch(sub.getId()); // ✅ UUID
+            }
         }
     }
 }

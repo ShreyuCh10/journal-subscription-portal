@@ -4,6 +4,8 @@ import com.example.JournalSubscription.entity.Invoice;
 import com.example.JournalSubscription.service.InvoiceService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/invoices")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -17,13 +19,13 @@ public class InvoiceControler {
 
     // ✅ CREATE INVOICE (Checkout)
     @PostMapping("/subscription/{subscriptionId}")
-    public Invoice createInvoice(@PathVariable Long subscriptionId, @RequestParam Double amount) {
+    public Invoice createInvoice(@PathVariable UUID subscriptionId, @RequestParam Double amount) {
         return invoiceService.createInvoiceForSubscription(subscriptionId, amount);
     }
 
     // ✅ GET INVOICE BY ID
     @GetMapping("/{id}")
-    public Invoice getInvoiceById(@PathVariable Long id) {
+    public Invoice getInvoiceById(@PathVariable UUID id) {
         return invoiceService.findById(id);
     }
 }

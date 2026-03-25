@@ -73,12 +73,17 @@ return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
       {/* Image Section */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=600"
-          alt={journal.title}
-          className="w-full h-full object-cover"
-        />
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-[420px] flex items-center justify-center">
+    <img
+      src={
+        journal.imageUrl
+          ? `http://localhost:8080${journal.imageUrl}`
+          : "https://via.placeholder.com/400x250?text=Journal"
+      }
+      alt={journal.title}
+      className="max-h-full w-auto object-contain p-4 transition-transform duration-500 hover:scale-105"
+    />
+
       </div>
 
       {/* Details Section */}

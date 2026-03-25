@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 
 import { getAllPayments } from "../../../Service/PaymentApi";
-import { downloadReceipt } from "../../../Service/ReceiptApi";
+import { downloadReceiptByPaymentId } from "../../../Service/ReceiptApi";
 
 const ManagePayments = () => {
 
@@ -84,7 +84,7 @@ const ManagePayments = () => {
 
     try {
 
-      const res = await downloadReceipt(receiptId);
+      const res = await downloadReceiptByPaymentId(receiptId);
 
       const blob = new Blob([res.data], { type: "application/pdf" });
 

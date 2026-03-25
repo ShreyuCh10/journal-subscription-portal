@@ -1,12 +1,10 @@
 package com.example.JournalSubscription.controller;
 
-import org.springframework.security.oauth2.jwt.Jwt;
 import com.example.JournalSubscription.dto.PaymentResponse;
 import com.example.JournalSubscription.service.PaymentService;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -20,15 +18,15 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-    // 🔹 User payments
-
+    // 🔐 USER PAYMENTS (SECURE)
     @GetMapping("/my-payments")
-    public List<PaymentResponse> getMyPayments() {
-        return paymentService.getUserPayments();
+    public List<PaymentResponse> getUserPayments() {
+        return paymentService.getUserPayments(); // ✅ FIXED
     }
 
-    // 🔹 Admin - all payments
+    // 🔐 ADMIN ONLY
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<PaymentResponse> getAllPayments() {
         return paymentService.getAllPayments();
     }

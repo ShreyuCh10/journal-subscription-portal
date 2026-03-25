@@ -1,42 +1,35 @@
 package com.example.JournalSubscription.service;
 
 import com.example.JournalSubscription.dto.DispatchDTO;
-import com.example.JournalSubscription.entity.Dispatch;
-import com.example.JournalSubscription.entity.DispatchStatus;
-import com.example.JournalSubscription.entity.Journal;
-import com.example.JournalSubscription.entity.Subscription;
-import com.example.JournalSubscription.entity.User;
+import com.example.JournalSubscription.entity.*;
 import com.example.JournalSubscription.repository.DispatchRepository;
-import com.example.JournalSubscription.repository.JournalRepository;
 import com.example.JournalSubscription.repository.SubscriptionRepository;
-import com.example.JournalSubscription.repository.UserRepository;
 import org.springframework.stereotype.Service;
-import com.example.JournalSubscription.service.EmailService;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class DispatchService {
 
     private final DispatchRepository dispatchRepository;
-    private final UserRepository userRepository;
-    private final JournalRepository journalRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final EmailService emailService;
+    private final CurrentUserService currentUserService;
 
     public DispatchService(DispatchRepository dispatchRepository,
-                           UserRepository userRepository,
-                           JournalRepository journalRepository,
                            SubscriptionRepository subscriptionRepository,
-                           EmailService emailService) {
+                           EmailService emailService,
+                           CurrentUserService currentUserService) {
         this.dispatchRepository = dispatchRepository;
-        this.userRepository = userRepository;
-        this.journalRepository = journalRepository;
         this.subscriptionRepository = subscriptionRepository;
-        this.emailService= emailService;
+        this.emailService = emailService;
+        this.currentUserService = currentUserService;
     }
 
+    // ================= ALL =================
     public List<DispatchDTO> getAllDispatches() {
         return dispatchRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
@@ -44,43 +37,31 @@ public class DispatchService {
                 .collect(Collectors.toList());
     }
 
-    public DispatchDTO updateStatus(Long id, String status) {
+    // ================= UPDATE =================
+    public DispatchDTO updateStatus(UUID id, String status) {
 
         Dispatch dispatch = dispatchRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Dispatch not found"));
 
         DispatchStatus newStatus = DispatchStatus.valueOf(status.toUpperCase());
-
         dispatch.setStatus(newStatus);
 
-        // =====================================================
-        // 🚚 STATUS LOGIC
-        // =====================================================
-
         if (newStatus == DispatchStatus.SHIPPED) {
-
             dispatch.setDispatchDate(LocalDateTime.now());
 
-            // ✅ Generate tracking only once
             if (dispatch.getTrackingNumber() == null) {
-                dispatch.setTrackingNumber("TRK-" + System.currentTimeMillis());
+                dispatch.setTrackingNumber("TRK-" + UUID.randomUUID());
             }
 
         } else if (newStatus == DispatchStatus.DELIVERED) {
-
             dispatch.setDeliveryDate(LocalDateTime.now());
         }
 
-        // ✅ Save first
         Dispatch saved = dispatchRepository.save(dispatch);
 
-        // =====================================================
-        // 📧 SEND EMAIL
-        // =====================================================
+        // ================= EMAIL =================
         if (newStatus == DispatchStatus.SHIPPED) {
-
             try {
-
                 String trackingLink =
                         "https://www.delhivery.com/track/package/" +
                                 saved.getTrackingNumber();
@@ -102,27 +83,20 @@ public class DispatchService {
             }
         }
 
-        // =====================================================
-        // ✅ RETURN DTO
-        // =====================================================
         return toDTO(saved);
     }
 
-    public DispatchDTO createDispatch(Long subscriptionId, Long userId, Long journalId) {
+    // ================= CREATE =================
+    public DispatchDTO createDispatch(UUID subscriptionId) {
 
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new RuntimeException("Subscription not found"));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Journal journal = journalRepository.findById(journalId)
-                .orElseThrow(() -> new RuntimeException("Journal not found"));
-
         Dispatch dispatch = new Dispatch();
+
         dispatch.setSubscription(subscription);
-        dispatch.setUser(user);
-        dispatch.setJournal(journal);
+        dispatch.setUser(subscription.getUser());     // ✅ no DB call
+        dispatch.setJournal(subscription.getJournal()); // ✅ no DB call
         dispatch.setStatus(DispatchStatus.PENDING);
 
         dispatchRepository.save(dispatch);
@@ -130,55 +104,41 @@ public class DispatchService {
         return toDTO(dispatch);
     }
 
-    public long countByStatus(DispatchStatus status) {
-        return dispatchRepository.countByStatus(status);
-    }
+    // ================= USER DISPATCHES =================
+    public List<DispatchDTO> getMyDispatches() {
 
-    public List<DispatchDTO> getUserDispatches(String email) {
-        User user = userRepository.findByClerkUserId(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = currentUserService.getCurrentUser();
 
-        return dispatchRepository.findByUser(user)
+        return dispatchRepository.findByUser_Id(user.getId())
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
+    // ================= COUNT =================
+    public long countByStatus(DispatchStatus status) {
+        return dispatchRepository.countByStatus(status);
+    }
 
-
+    // ================= DTO =================
     private DispatchDTO toDTO(Dispatch dispatch) {
 
         DispatchDTO dto = new DispatchDTO();
 
         dto.setId(dispatch.getId());
         dto.setStatus(dispatch.getStatus().name());
-        dto.setDispatchDate(
-                dispatch.getDispatchDate() != null ? dispatch.getDispatchDate() : null
-        );
-
-        dto.setDeliveryDate(
-                dispatch.getDeliveryDate() != null ? dispatch.getDeliveryDate() : null
-        );
+        dto.setDispatchDate(dispatch.getDispatchDate());
+        dto.setDeliveryDate(dispatch.getDeliveryDate());
         dto.setTrackingNumber(dispatch.getTrackingNumber());
         dto.setCreatedAt(dispatch.getCreatedAt());
 
-        if (dispatch.getSubscription() != null) {
-            dto.setSubscriptionId(dispatch.getSubscription().getId());
-        }
+        dto.setSubscriptionId(dispatch.getSubscription().getId());
 
-        if (dispatch.getUser() != null) {
-            dto.setUserName(
-                    dispatch.getUser().getFullName() != null
-                            ? dispatch.getUser().getFullName()
-                            : dispatch.getUser().getEmail()
-            );
-            dto.setUserEmail(dispatch.getUser().getEmail());
-        }
+        dto.setUserName(dispatch.getUser().getFullName());
+        dto.setUserEmail(dispatch.getUser().getEmail());
 
-        if (dispatch.getJournal() != null) {
-            dto.setJournalTitle(dispatch.getJournal().getTitle());
-        }
         dto.setJournalTitle(dispatch.getJournal().getTitle());
+
         dto.setMonth(dispatch.getMonth());
         dto.setYear(dispatch.getYear());
         dto.setQuantity(dispatch.getSubscription().getQuantity());

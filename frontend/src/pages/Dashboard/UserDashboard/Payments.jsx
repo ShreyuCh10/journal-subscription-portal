@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
-  Container,
   Typography,
   Card,
   CardContent,
@@ -20,17 +19,19 @@ import {
 
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+
 import { getMyPayments } from "../../../Service/PaymentApi";
-import { getReceiptByPaymentId, downloadReceipt }
-  from "../../../Service/ReceiptApi";
-import { downloadReceiptByPaymentId }
-  from "../../../Service/ReceiptApi";
+import { downloadReceiptByPaymentId } from "../../../Service/ReceiptApi";
+
 const Payments = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
+
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  // ================= FETCH PAYMENTS =================
   useEffect(() => {
     fetchPayments();
   }, []);
@@ -38,9 +39,7 @@ const Payments = () => {
   const fetchPayments = async () => {
     try {
       const res = await getMyPayments();
-      console.log(res.data);
-      setPayments(res.data);
-
+      setPayments(res.data || []);
     } catch (err) {
       console.error("Error fetching payments:", err);
     } finally {
@@ -48,151 +47,162 @@ const Payments = () => {
     }
   };
 
-  // 🔥 Derived summary data
+  // ================= SUMMARY =================
   const totalSpent = useMemo(() => {
-    return payments.reduce((sum, p) => sum + p.amount, 0);
+    return payments.reduce((sum, p) => sum + (p.amount || 0), 0);
   }, [payments]);
-const handleChangePage = (event, newPage) => {
-  setPage(newPage);
-};
 
-const handleChangeRowsPerPage = (event) => {
-  setRowsPerPage(parseInt(event.target.value, 10));
-  setPage(0);
-};
- const handleDownload = async (paymentId) => {
-   try {
-     const fileRes = await downloadReceiptByPaymentId(paymentId);
+  // ================= PAGINATION =================
+  const handleChangePage = (_, newPage) => {
+    setPage(newPage);
+  };
 
-     const blob = new Blob([fileRes.data], { type: "application/pdf" });
-     const url = window.URL.createObjectURL(blob);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
-     const link = document.createElement("a");
-     link.href = url;
-     link.download = `receipt-${paymentId}.pdf`;
-     document.body.appendChild(link);
-     link.click();
+  // ================= DOWNLOAD =================
+  const handleDownload = async (paymentId) => {
+    try {
+      setDownloadingId(paymentId);
 
-     link.remove();
-     window.URL.revokeObjectURL(url);
+      const res = await downloadReceiptByPaymentId(paymentId);
 
-   } catch (err) {
-     console.error("Download failed:", err);
-   }
- };
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
 
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `receipt-${paymentId}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error("Download failed:", err);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  // ================= UI =================
   return (
     <Box
       sx={{
         ml: "60px",
         px: 5,
         py: 5,
-        backgroundColor: "background.default",
-        minHeight: "100vh"
+        minHeight: "100vh",
+        backgroundColor: "background.default"
       }}
     >
       <Typography variant="h4" gutterBottom>
         My Payments
       </Typography>
 
-        {/* ================= Summary Cards ================= */}
-        {!loading && payments.length > 0 && (
-          <Grid container spacing={3} mb={4}>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Payments
-                  </Typography>
-                  <Typography variant="h5" fontWeight={600}>
-                    {payments.length}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Amount Spent
-                  </Typography>
-                  <Typography
-                    variant="h5"
-                    fontWeight={600}
-                    color="secondary.main"
-                  >
-                    ₹{totalSpent}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        )}
-
-        {/* ================= Loading State ================= */}
-        {loading ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            height="300px"
-          >
-            <CircularProgress />
-          </Box>
-        ) : payments.length === 0 ? (
-          /* ================= Empty State ================= */
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            height="60vh"
-          >
-            <Card sx={{ p: 6, textAlign: "center", width: 420 }}>
-              <CreditCardIcon
-                sx={{ fontSize: 60, color: "secondary.main", mb: 2 }}
-              />
-              <Typography variant="h6" gutterBottom>
-                No Payments Yet
-              </Typography>
-              <Typography variant="body2" color="text.secondary" mb={3}>
-                Once you subscribe to a journal, your payments will appear here.
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => (window.location.href = "/journals")}
-              >
-                Browse Journals
-              </Button>
+      {/* ================= SUMMARY ================= */}
+      {!loading && payments.length > 0 && (
+        <Grid container spacing={3} mb={4}>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">
+                  Total Payments
+                </Typography>
+                <Typography variant="h5" fontWeight={600}>
+                  {payments.length}
+                </Typography>
+              </CardContent>
             </Card>
-          </Box>
-        ) : (
-          /* ================= Payments Table ================= */
-          <Card>
-            <CardContent>
-              <Typography variant="h6" mb={2}>
-                Payment History
-              </Typography>
+          </Grid>
 
-              <Divider sx={{ mb: 2 }} />
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">
+                  Total Amount Spent
+                </Typography>
+                <Typography
+                  variant="h5"
+                  fontWeight={600}
+                  color="secondary.main"
+                >
+                  ₹{totalSpent}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
 
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Journal</TableCell>
-                    <TableCell>Amount</TableCell>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Payment ID</TableCell>
-                    <TableCell>Receipt</TableCell>
-                  </TableRow>
-                </TableHead>
+      {/* ================= LOADING ================= */}
+      {loading ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="300px"
+        >
+          <CircularProgress />
+        </Box>
+      ) : payments.length === 0 ? (
+        /* ================= EMPTY ================= */
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="60vh"
+        >
+          <Card sx={{ p: 6, textAlign: "center", width: 420 }}>
+            <CreditCardIcon
+              sx={{ fontSize: 60, color: "secondary.main", mb: 2 }}
+            />
+            <Typography variant="h6" gutterBottom>
+              No Payments Yet
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={3}>
+              Once you subscribe to a journal, your payments will appear here.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => (window.location.href = "/journals")}
+            >
+              Browse Journals
+            </Button>
+          </Card>
+        </Box>
+      ) : (
+        /* ================= TABLE ================= */
+        <Card>
+          <CardContent>
+            <Typography variant="h6" mb={2}>
+              Payment History
+            </Typography>
 
-                <TableBody>
-                 {payments
-                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                   .map((p) => (
+            <Divider sx={{ mb: 2 }} />
+
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Journal</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Payment ID</TableCell>
+                  <TableCell>Receipt</TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {payments
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((p) => (
                     <TableRow key={p.id} hover>
+
                       <TableCell>
                         <Typography fontWeight={600}>
                           {p.journalTitle}
@@ -226,40 +236,41 @@ const handleChangeRowsPerPage = (event) => {
                         />
                       </TableCell>
 
-                      <TableCell
-                        sx={{ fontSize: 12, color: "text.secondary" }}
-                      >
+                      <TableCell sx={{ fontSize: 12, color: "text.secondary" }}>
                         {p.razorpayPaymentId}
                       </TableCell>
+
                       <TableCell>
                         <Button
                           size="small"
                           variant="outlined"
                           startIcon={<ReceiptLongIcon />}
                           onClick={() => handleDownload(p.id)}
+                          disabled={downloadingId === p.id}
                         >
-                          Download
+                          {downloadingId === p.id
+                            ? "Downloading..."
+                            : "Download"}
                         </Button>
                       </TableCell>
+
                     </TableRow>
-
                   ))}
+              </TableBody>
+            </Table>
 
-                </TableBody>
-              </Table>
-              <TablePagination
-                component="div"
-                count={payments.length}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={[5, 10, 25]}
-              />
-            </CardContent>
-          </Card>
-        )}
-
+            <TablePagination
+              component="div"
+              count={payments.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25]}
+            />
+          </CardContent>
+        </Card>
+      )}
     </Box>
   );
 };

@@ -2,24 +2,27 @@ package com.example.JournalSubscription.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.util.UUID;
 
 @Entity
 @Table(name = "journals")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Journal {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @UuidGenerator
+    private UUID id;
 
     @Column(nullable = false)
     private String title;
 
-    @Lob   // ✅ This makes it TEXT / LONG in DB
+    @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -29,14 +32,4 @@ public class Journal {
     private String publisher;
 
     private String imageUrl;
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
 }
-
-

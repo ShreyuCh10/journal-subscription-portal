@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/dispatches")
@@ -40,24 +41,19 @@ public class  DispatchController {
     }
 
     @PutMapping("/{id}/status")
-    public DispatchDTO updateStatus(@PathVariable Long id, @RequestParam String status) {
+    public DispatchDTO updateStatus(@PathVariable UUID id, @RequestParam String status) {
         return dispatchService.updateStatus(id, status);
     }
 
     @PostMapping
-    public DispatchDTO create(@RequestBody Map<String, Long> body) {
+    public DispatchDTO create(@RequestBody Map<String, UUID> body) {
 
         return dispatchService.createDispatch(
-                body.get("subscriptionId"),
-                body.get("userId"),
-                body.get("journalId")
+                body.get("subscriptionId")
         );
     }
     @GetMapping("/my")
-    public List<DispatchDTO> getUserShipments(Authentication auth) {
-
-        System.out.println("AUTH NAME = " + auth.getName());
-
-        return dispatchService.getUserDispatches(auth.getName());
+    public List<DispatchDTO> getUserShipments() {
+        return dispatchService.getMyDispatches();
     }
 }

@@ -4,14 +4,12 @@ import com.example.JournalSubscription.dto.CheckoutRequest;
 import com.example.JournalSubscription.dto.CheckoutResponse;
 import com.example.JournalSubscription.entity.*;
 import com.example.JournalSubscription.repository.*;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -23,8 +21,8 @@ public class CheckoutService {
     private final ReceiptRepository receiptRepository;
     private final JournalRepository journalRepository;
     private final DispatchRepository dispatchRepository;
-    private final UserRepository userRepository;
-    private final EmailService emailService; // ✅ added
+    private final EmailService emailService;
+    private final CurrentUserService currentUserService;
 
     public CheckoutService(
             SubscriptionRepository subscriptionRepository,
@@ -33,8 +31,8 @@ public class CheckoutService {
             ReceiptRepository receiptRepository,
             JournalRepository journalRepository,
             DispatchRepository dispatchRepository,
-            UserRepository userRepository,
-            EmailService emailService // ✅ added
+            EmailService emailService,
+            CurrentUserService currentUserService
     ) {
         this.subscriptionRepository = subscriptionRepository;
         this.invoiceRepository = invoiceRepository;
@@ -42,8 +40,8 @@ public class CheckoutService {
         this.receiptRepository = receiptRepository;
         this.journalRepository = journalRepository;
         this.dispatchRepository = dispatchRepository;
-        this.userRepository = userRepository;
-        this.emailService = emailService; // ✅ added
+        this.emailService = emailService;
+        this.currentUserService = currentUserService;
     }
 
     public CheckoutResponse processSuccessfulPayment(
@@ -53,32 +51,31 @@ public class CheckoutService {
     ) {
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
-            throw new RuntimeException("Cart items are empty");
+            throw new RuntimeException("Cart empty");
         }
+
+        User user = currentUserService.getCurrentUser(); // 🔐 secure
 
         double calculatedAmount = 0;
 
-        // =====================================================
-        // 🧮 CALCULATE AMOUNT
-        // =====================================================
+        // ================= AMOUNT =================
         for (var item : request.getItems()) {
 
             Journal journal = journalRepository.findById(item.getJournalId())
                     .orElseThrow(() -> new RuntimeException("Journal not found"));
 
-            calculatedAmount +=
-                    journal.getPrice() * item.getQuantity() * item.getYears();
+            calculatedAmount += journal.getPrice()
+                    * item.getQuantity()
+                    * item.getYears();
         }
 
         if (Double.compare(calculatedAmount, request.getAmount()) != 0) {
             throw new RuntimeException("Amount mismatch");
         }
 
-        // =====================================================
-        // 🏠 ADDRESS
-        // =====================================================
+        // ================= ADDRESS =================
         Address address = new Address();
-        address.setUserId(request.getUserId());
+        address.setUser(user);
         address.setFullName(request.getFullName());
         address.setPhone(request.getMobile());
         address.setStreet(request.getStreet());
@@ -86,16 +83,10 @@ public class CheckoutService {
         address.setState(request.getState());
         address.setPincode(request.getPincode());
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
         LocalDate today = LocalDate.now();
+        List<Subscription> savedSubs = new ArrayList<>();
 
-        List<Subscription> savedSubscriptions = new ArrayList<>();
-
-        // =====================================================
-        // 📦 CREATE SUBSCRIPTIONS
-        // =====================================================
+        // ================= SUBSCRIPTIONS =================
         for (var item : request.getItems()) {
 
             Journal journal = journalRepository.findById(item.getJournalId())
@@ -103,10 +94,12 @@ public class CheckoutService {
 
             Subscription sub = new Subscription();
 
-            sub.setUserId(user.getId());
-            sub.setJournalId(journal.getId());
+            sub.setUser(user);
+            sub.setJournal(journal);
             sub.setQuantity(item.getQuantity());
             sub.setYears(item.getYears());
+            sub.setShippingAddress(address);
+            sub.setStatus(Subscription.SubscriptionStatus.ACTIVE);
 
             LocalDate startDate = LocalDate.of(today.getYear(), 1, 1);
             LocalDate endDate = LocalDate.of(
@@ -117,22 +110,17 @@ public class CheckoutService {
 
             sub.setStartDate(startDate);
             sub.setEndDate(endDate);
-            sub.setStatus(Subscription.SubscriptionStatus.ACTIVE);
-            sub.setShippingAddress(address);
 
             Subscription savedSub = subscriptionRepository.save(sub);
-            savedSubscriptions.add(savedSub);
+            savedSubs.add(savedSub);
 
-            // =====================================================
-            // 📦 CREATE DISPATCHES (BULK SAVE)
-            // =====================================================
+            // ================= DISPATCH =================
             List<Dispatch> dispatchList = new ArrayList<>();
 
             for (int year = startDate.getYear(); year <= endDate.getYear(); year++) {
                 for (int month = 1; month <= 12; month++) {
 
                     Dispatch d = new Dispatch();
-
                     d.setSubscription(savedSub);
                     d.setUser(user);
                     d.setJournal(journal);
@@ -150,11 +138,9 @@ public class CheckoutService {
                 }
             }
 
-            dispatchRepository.saveAll(dispatchList); // ✅ bulk save
+            dispatchRepository.saveAll(dispatchList);
 
-            // =====================================================
-            // 📧 EMAIL (SAFE)
-            // =====================================================
+            // ================= EMAIL =================
             try {
                 emailService.sendEmail(
                         user.getEmail(),
@@ -162,59 +148,38 @@ public class CheckoutService {
                         "Journal: " + journal.getTitle() +
                                 "\nValid till: " + endDate
                 );
-            } catch (Exception e) {
-                System.out.println("Email failed (subscription)");
-            }
+            } catch (Exception ignored) {}
         }
 
-        // =====================================================
-        // 🧾 INVOICE
-        // =====================================================
+        // ================= INVOICE =================
         Invoice invoice = new Invoice();
-        invoice.setSubscriptionId(savedSubscriptions.get(0).getId());
+        invoice.setSubscription(savedSubs.get(0)); // ✅ relation
         invoice.setAmount(calculatedAmount);
         invoice.setStatus(InvoiceStatus.PAID);
-        invoice.setInvoiceNumber("INV-" + System.currentTimeMillis());
+        invoice.setInvoiceNumber("INV-" + UUID.randomUUID());
         invoice.setIssuedDate(LocalDateTime.now());
 
         Invoice savedInvoice = invoiceRepository.save(invoice);
 
-        try {
-            emailService.sendEmail(
-                    user.getEmail(),
-                    "Invoice Generated",
-                    "Invoice No: " + invoice.getInvoiceNumber() +
-                            "\nAmount: ₹" + calculatedAmount
-            );
-        } catch (Exception e) {
-            System.out.println("Email failed (invoice)");
-        }
-
-        // =====================================================
-        // 💳 PAYMENT
-        // =====================================================
+        // ================= PAYMENT =================
         Payment payment = new Payment();
-        payment.setSubscription(savedSubscriptions.get(0));
+        payment.setSubscription(savedSubs.get(0));
         payment.setInvoice(savedInvoice);
         payment.setAmount(calculatedAmount);
         payment.setPaymentMethod("RAZORPAY");
         payment.setStatus(Payment.PaymentStatus.SUCCESS);
         payment.setRazorpayPaymentId(razorpayPaymentId);
         payment.setRazorpayOrderId(razorpayOrderId);
-        payment.setPaymentDate(LocalDateTime.now());
 
         Payment savedPayment = paymentRepository.save(payment);
 
-        // =====================================================
-        // 🧾 RECEIPT
-        // === ==================================================
+        // ================= RECEIPT =================
         Receipt receipt = new Receipt();
         receipt.setPayment(savedPayment);
-        receipt.setReceiptNumber("RCPT-" + System.currentTimeMillis());
-        receipt.setGeneratedAt(LocalDateTime.now());
+        receipt.setReceiptNumber("RCPT-" + UUID.randomUUID());
 
         Receipt savedReceipt = receiptRepository.save(receipt);
 
-        return new CheckoutResponse("SUCCESS", savedReceipt.getReceiptId());
+        return new CheckoutResponse("SUCCESS", savedReceipt.getId());
     }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
@@ -15,263 +15,319 @@ import {
   TextField,
   MenuItem,
   CircularProgress,
+  Tooltip,
+  TablePagination,
 } from "@mui/material";
+
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
-import { getAllDispatches, getDispatchCounts, updateDispatchStatus } from "../../../Service/DispatchApi";
+
+import {
+  getAllDispatches,
+  getDispatchCounts,
+  updateDispatchStatus,
+} from "../../../Service/DispatchApi";
+
+
+// ================= HELPERS =================
+
+const sortDispatches = (data) => {
+  return [...data].sort((a, b) => {
+    if (a.status === "DELIVERED" && b.status !== "DELIVERED") return 1;
+    if (a.status !== "DELIVERED" && b.status === "DELIVERED") return -1;
+
+    if (a.year !== b.year) return a.year - b.year;
+    return a.month - b.month;
+  });
+};
+
+const getMonthName = (month, year) => {
+  if (!month || !year) return "-";
+  const months = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+  ];
+  return `${months[month - 1]} ${year}`;
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  if (isNaN(d)) return "-";
+  return d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const isFutureDispatch = (month, year) => {
+  const now = new Date();
+  return (
+    year > now.getFullYear() ||
+    (year === now.getFullYear() && month > now.getMonth() + 1)
+  );
+};
+
+const getStatusColor = (status) => {
+  return {
+    PENDING: "warning",
+    PACKED: "secondary",
+    SHIPPED: "info",
+    DELIVERED: "success",
+  }[status] || "default";
+};
+
+
+// ================= STAT CARD =================
+
+const StatCard = ({ title, value, icon }) => (
+  <Card sx={{ borderRadius: 3 }}>
+    <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      {icon}
+      <Box>
+        <Typography variant="body2" color="text.secondary">
+          {title}
+        </Typography>
+        <Typography variant="h5" fontWeight={700}>
+          {value}
+        </Typography>
+      </Box>
+    </CardContent>
+  </Card>
+);
+
+
+// ================= MAIN =================
 
 const ManageDispatch = () => {
   const [dispatches, setDispatches] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [counts, setCounts] = useState({ pending: 0, shipped: 0, delivered: 0 });
-  const [loading, setLoading] = useState(true);
+  const [counts, setCounts] = useState({});
   const [statusFilter, setStatusFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
 
+  // pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+
+  // ===== FETCH =====
   useEffect(() => {
-    fetchData();
+    (async () => {
+      try {
+        const [dRes, cRes] = await Promise.all([
+          getAllDispatches(),
+          getDispatchCounts(),
+        ]);
+
+        setDispatches(sortDispatches(dRes.data));
+        setCounts(cRes.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const fetchData = async () => {
-    try {
-      const [dispRes, countRes] = await Promise.all([
-        getAllDispatches(),
-        getDispatchCounts(),
-      ]);
-      setDispatches(dispRes.data);
-      setFiltered(dispRes.data);
-      setCounts(countRes.data);
-    } catch (err) {
-      console.error("Failed to load dispatches", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    if (statusFilter === "all") {
-      setFiltered(dispatches);
-    } else {
-      setFiltered(dispatches.filter((d) => d.status === statusFilter));
-    }
-  }, [statusFilter, dispatches]);
+  // ===== FILTER + SORT =====
+  const filtered = useMemo(() => {
+    let data = dispatches;
 
-  const handleStatusUpdate = async (id, newStatus) => {
+    if (statusFilter !== "all") {
+      data = data.filter((d) => d.status === statusFilter);
+    }
+
+    return sortDispatches(data);
+  }, [dispatches, statusFilter]);
+
+
+  // ===== PAGINATION =====
+  const paginated = useMemo(() => {
+    return filtered.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+  }, [filtered, page, rowsPerPage]);
+
+
+  // ===== UPDATE =====
+  const handleUpdate = async (id, status) => {
     try {
-      const res = await updateDispatchStatus(id, newStatus);
-      setDispatches((prev) =>
-        prev.map((d) => (d.id === id ? res.data : d))
+      const res = await updateDispatchStatus(id, status);
+
+      const updated = dispatches.map((d) =>
+        d.id === id ? res.data : d
       );
-      // Refresh counts
-      const countRes = await getDispatchCounts();
-      setCounts(countRes.data);
-    } catch (err) {
-      console.error("Failed to update status", err);
-      alert("Failed to update dispatch status");
+
+      setDispatches(sortDispatches(updated));
+
+      const cRes = await getDispatchCounts();
+      setCounts(cRes.data);
+    } catch {
+      alert("Update failed");
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "PENDING": return "warning";
-      case "SHIPPED": return "info";
-      case "DELIVERED": return "success";
-      case "PACKED": return "secondary";
-      default: return "default";
-    }
-  };
 
-const formatDate = (dateStr) => {
-    if (!dateStr || dateStr === "1970-01-01T00:00:00") return "-";
-
-    const date = new Date(dateStr);
-
-    // extra safety
-    if (isNaN(date.getTime())) return "-";
-
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
+  // ===== UI =====
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" mt={5}>
+      <Box textAlign="center" mt={6}>
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+    <Box p={3} display="flex" flexDirection="column" gap={4}>
+
+      {/* HEADER */}
       <Typography variant="h4" fontWeight={700}>
         🚚 Dispatch Management
       </Typography>
 
-      {/* Summary Cards */}
-      <Grid container spacing={3}>
+
+      {/* STATS */}
+      <Grid container spacing={2}>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <HourglassEmptyIcon sx={{ fontSize: 40, color: "#ed6c02" }} />
-              <Box>
-                <Typography color="text.secondary" variant="body2">Pending</Typography>
-                <Typography variant="h5" fontWeight={700}>{counts.pending}</Typography>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatCard title="Pending" value={counts.pending}
+            icon={<HourglassEmptyIcon color="warning" />} />
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <LocalShippingIcon sx={{ fontSize: 40, color: "#0288d1" }} />
-              <Box>
-                <Typography color="text.secondary" variant="body2">Shipped</Typography>
-                <Typography variant="h5" fontWeight={700}>{counts.shipped}</Typography>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatCard title="Shipped" value={counts.shipped}
+            icon={<LocalShippingIcon color="info" />} />
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <CheckCircleIcon sx={{ fontSize: 40, color: "#2e7d32" }} />
-              <Box>
-                <Typography color="text.secondary" variant="body2">Delivered</Typography>
-                <Typography variant="h5" fontWeight={700}>{counts.delivered}</Typography>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatCard title="Delivered" value={counts.delivered}
+            icon={<CheckCircleIcon color="success" />} />
         </Grid>
       </Grid>
 
-      {/* Filter */}
-      <Box>
-        <TextField
-          select
-          label="Filter by Status"
-          size="small"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          sx={{ width: 180 }}
-        >
-          <MenuItem value="all">All</MenuItem>
-          <MenuItem value="PENDING">Pending</MenuItem>
-          <MenuItem value="SHIPPED">Shipped</MenuItem>
-          <MenuItem value="DELIVERED">Delivered</MenuItem>
-          <MenuItem value="PACKED">Packed</MenuItem>
-        </TextField>
-      </Box>
 
-      {/* Table */}
-      <Card sx={{ borderRadius: 3 }}>
+      {/* FILTER */}
+      <TextField
+        select
+        size="small"
+        label="Filter Status"
+        value={statusFilter}
+        onChange={(e) => {
+          setStatusFilter(e.target.value);
+          setPage(0);
+        }}
+        sx={{ width: 200 }}
+      >
+        {["all","PENDING","PACKED","SHIPPED","DELIVERED"].map(s => (
+          <MenuItem key={s} value={s}>{s}</MenuItem>
+        ))}
+      </TextField>
+
+
+      {/* TABLE */}
+      <Card>
         <CardContent>
+
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#f5f7fb" }}>
-                <TableCell><b>S.Id</b></TableCell>
-                <TableCell><b>User</b></TableCell>
-                <TableCell><b>Journal</b></TableCell>
-                <TableCell><b>Status</b></TableCell>
-                <TableCell><b>Dispatch Date</b></TableCell>
-                <TableCell><b>Delivery Date</b></TableCell>
-                <TableCell align="center"><b>Actions</b></TableCell>
+              <TableRow>
+                <TableCell>#</TableCell>
+                <TableCell>User</TableCell>
+                <TableCell>Journal</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Month</TableCell>
+                <TableCell>Dispatch</TableCell>
+                <TableCell>Delivery</TableCell>
+                <TableCell align="center">Action</TableCell>
               </TableRow>
             </TableHead>
+
             <TableBody>
+              {paginated.length ? paginated.map((d, i) => {
+                const future = isFutureDispatch(d.month, d.year);
 
-              {filtered.map((d, index) => (
+                return (
+                  <TableRow key={d.id} sx={{ opacity: future ? 0.5 : 1 }}>
+                    <TableCell>{page * rowsPerPage + i + 1}</TableCell>
 
-                <TableRow key={d.id} hover>
+                    <TableCell>
+                      <Typography fontWeight={600}>{d.userName}</Typography>
+                      <Typography variant="caption">{d.userEmail}</Typography>
+                    </TableCell>
 
-                  {/* S.No */}
-                  <TableCell>{index + 1}</TableCell>
+                    <TableCell>{d.journalTitle}</TableCell>
 
-                  {/* User */}
-                  <TableCell>
-                    <Typography variant="body2" fontWeight={600}>
-                      {d.userName || "-"}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {d.userEmail || ""}
-                    </Typography>
-                  </TableCell>
+                    <TableCell>
+                      <Chip label={d.status} color={getStatusColor(d.status)} size="small" />
+                    </TableCell>
 
-                  {/* Journal */}
-                  <TableCell>{d.journalTitle || "-"}</TableCell>
+                    <TableCell>
+                      <Chip label={getMonthName(d.month, d.year)} size="small" />
+                    </TableCell>
 
-                  {/* Status */}
-                  <TableCell>
-                    <Chip
-                      label={d.status}
-                      color={getStatusColor(d.status)}
-                      size="small"
-                    />
-                  </TableCell>
+                    <TableCell>{formatDate(d.dispatchDate)}</TableCell>
+                    <TableCell>{formatDate(d.deliveryDate)}</TableCell>
 
-                  {/* Dispatch Date */}
-                  <TableCell>{formatDate(d.dispatchDate)}</TableCell>
+                    <TableCell align="center">
 
-                  {/* Delivery Date */}
-                  <TableCell>{formatDate(d.deliveryDate)}</TableCell>
+                      {(d.status === "PENDING" || d.status === "PACKED") && (
+                        <Tooltip title={future ? "Future dispatch locked" : ""}>
+                          <span>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              disabled={future}
+                              onClick={() => handleUpdate(d.id, "SHIPPED")}
+                            >
+                              Ship
+                            </Button>
+                          </span>
+                        </Tooltip>
+                      )}
 
-                  {/* Actions */}
-                  <TableCell align="center">
+                      {d.status === "SHIPPED" && (
+                        <Button
+                          size="small"
+                          color="success"
+                          variant="contained"
+                          onClick={() => handleUpdate(d.id, "DELIVERED")}
+                        >
+                          Deliver
+                        </Button>
+                      )}
 
-                    {(d.status === "PENDING" || d.status === "PACKED") && (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="info"
-                        onClick={() => handleStatusUpdate(d.id, "SHIPPED")}
-                      >
-                        Ship
-                      </Button>
-                    )}
+                      {d.status === "DELIVERED" && (
+                        <Typography color="success.main">✔ Done</Typography>
+                      )}
 
-                    {d.status === "SHIPPED" && (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="success"
-                        onClick={() => handleStatusUpdate(d.id, "DELIVERED")}
-                      >
-                        Deliver
-                      </Button>
-                    )}
-
-                    {d.status === "DELIVERED" && (
-                      <Typography
-                        variant="caption"
-                        color="success.main"
-                        fontWeight={600}
-                      >
-                        ✓ Done
-                      </Typography>
-                    )}
-
-                  </TableCell>
-
-                </TableRow>
-
-              ))}
-
-              {/* EMPTY STATE */}
-              {filtered.length === 0 && (
+                    </TableCell>
+                  </TableRow>
+                );
+              }) : (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">
-                      No dispatches found
-                    </Typography>
+                  <TableCell colSpan={8} align="center">
+                    No data
                   </TableCell>
                 </TableRow>
               )}
-
             </TableBody>
           </Table>
+
+          {/* PAGINATION */}
+          <TablePagination
+            component="div"
+            count={filtered.length}
+            page={page}
+            onPageChange={(e, p) => setPage(p)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+          />
+
         </CardContent>
       </Card>
     </Box>

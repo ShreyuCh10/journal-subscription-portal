@@ -29,11 +29,14 @@ public class CheckoutController {
         this.razorpayService = razorpayService;
     }
 
-    // STEP 1: Create Razorpay Order
+    // ================= STEP 1: CREATE ORDER =================
     @PostMapping("/create-order")
     public ResponseEntity<?> createRazorpayOrder(@RequestBody CheckoutRequest request) throws Exception {
 
-        Order order = razorpayService.createOrder(request.getAmount());
+        // ❗ IMPORTANT: ideally calculate amount in backend
+        Double amount = request.getAmount();
+
+        Order order = razorpayService.createOrder(amount); // ✅ clean
 
         Map<String, Object> response = new HashMap<>();
         response.put("orderId", order.get("id"));
@@ -43,13 +46,12 @@ public class CheckoutController {
         return ResponseEntity.ok(response);
     }
 
-    // STEP 2: Verify Payment + Save Payment + Create Subscription
+    // ================= STEP 2: VERIFY PAYMENT =================
     @PostMapping("/verify-payment")
     public ResponseEntity<?> verifyPayment(@RequestBody CheckoutRequest request) {
 
         try {
 
-            // 1️⃣ Verify Razorpay signature
             boolean isValid = razorpayService.verifySignature(
                     request.getRazorpay_order_id(),
                     request.getRazorpay_payment_id(),
@@ -61,7 +63,6 @@ public class CheckoutController {
                         .body("Invalid payment signature");
             }
 
-            // 2️⃣ Process successful payment
             CheckoutResponse response =
                     checkoutService.processSuccessfulPayment(
                             request,

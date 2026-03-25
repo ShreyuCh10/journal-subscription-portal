@@ -1,15 +1,24 @@
 package com.example.JournalSubscription.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
+
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "admin_settings")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AdminSettings {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @UuidGenerator
+    private UUID id;
 
     @Column(name = "setting_key", nullable = false, unique = true)
     private String settingKey;
@@ -24,17 +33,4 @@ public class AdminSettings {
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
-    // ===== GETTERS & SETTERS =====
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getSettingKey() { return settingKey; }
-    public void setSettingKey(String settingKey) { this.settingKey = settingKey; }
-
-    public String getSettingValue() { return settingValue; }
-    public void setSettingValue(String settingValue) { this.settingValue = settingValue; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

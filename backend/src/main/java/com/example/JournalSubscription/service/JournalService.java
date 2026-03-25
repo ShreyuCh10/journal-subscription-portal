@@ -8,21 +8,22 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class JournalService {
 
     private final JournalRepository journalRepository;
 
-    // Use absolute path to avoid saving in /target folder
-    private final String UPLOAD_DIR =
-            "C:/Users/Rohit/IdeaProjects/Journal_Portal/backend/uploads/journals/";
+    // ✅ Correct path definition
+    private final Path UPLOAD_PATH =
+            Paths.get(System.getProperty("user.dir"), "uploads", "journals");
 
     public JournalService(JournalRepository journalRepository) {
         this.journalRepository = journalRepository;
     }
 
-    // CREATE
+    // ================= CREATE =================
     public Journal save(
             String title,
             Double price,
@@ -39,49 +40,27 @@ public class JournalService {
         journal.setPublisher(publisher);
 
         if (image != null && !image.isEmpty()) {
-
-            String fileName =
-                    System.currentTimeMillis() + "_" + image.getOriginalFilename();
-
-            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath();
-
-            System.out.println("Saving image to: " + uploadPath);
-
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            Path filePath = uploadPath.resolve(fileName);
-
-            Files.copy(
-                    image.getInputStream(),
-                    filePath,
-                    StandardCopyOption.REPLACE_EXISTING
-            );
-
-            System.out.println("File saved: " + filePath);
-
-            journal.setImageUrl("/uploads/journals/" + fileName);
+            journal.setImageUrl(saveImage(image));
         }
 
         return journalRepository.save(journal);
     }
 
-    // READ ALL
+    // ================= READ ALL =================
     public List<Journal> findAll() {
         return journalRepository.findAll();
     }
 
-    // READ BY ID
-    public Journal findById(Long id) {
+    // ================= READ BY ID =================
+    public Journal findById(UUID id) {
         return journalRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Journal not found with id: " + id));
     }
 
-    // UPDATE
+    // ================= UPDATE =================
     public Journal update(
-            Long id,
+            UUID id,
             String title,
             Double price,
             String description,
@@ -89,40 +68,44 @@ public class JournalService {
             MultipartFile image
     ) throws IOException {
 
-        Journal existingJournal = findById(id);
+        Journal existing = findById(id);
 
-        existingJournal.setTitle(title);
-        existingJournal.setPrice(price);
-        existingJournal.setDescription(description);
-        existingJournal.setPublisher(publisher);
+        existing.setTitle(title);
+        existing.setPrice(price);
+        existing.setDescription(description);
+        existing.setPublisher(publisher);
 
         if (image != null && !image.isEmpty()) {
-
-            String fileName =
-                    System.currentTimeMillis() + "_" + image.getOriginalFilename();
-
-            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath();
-
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            Path filePath = uploadPath.resolve(fileName);
-
-            Files.copy(
-                    image.getInputStream(),
-                    filePath,
-                    StandardCopyOption.REPLACE_EXISTING
-            );
-
-            existingJournal.setImageUrl("/uploads/journals/" + fileName);
+            existing.setImageUrl(saveImage(image));
         }
 
-        return journalRepository.save(existingJournal);
+        return journalRepository.save(existing);
     }
 
-    // DELETE
-    public void delete(Long id) {
+    // ================= DELETE =================
+    public void delete(UUID id) {
         journalRepository.deleteById(id);
+    }
+
+    // ================= HELPER =================
+    private String saveImage(MultipartFile image) throws IOException {
+
+        String fileName =
+                System.currentTimeMillis() + "_" + image.getOriginalFilename();
+
+        // ✅ Ensure directory exists
+        if (!Files.exists(UPLOAD_PATH)) {
+            Files.createDirectories(UPLOAD_PATH);
+        }
+
+        Path filePath = UPLOAD_PATH.resolve(fileName);
+
+        Files.copy(
+                image.getInputStream(),
+                filePath,
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        return "/uploads/journals/" + fileName;
     }
 }
